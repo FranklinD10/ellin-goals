@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
+import { showNotification } from '@mantine/notifications';
 import { UserType } from '../types';
 
 interface UserContextType {
@@ -10,8 +11,19 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<UserType>('El');
+  const [currentUser, setCurrentUser] = useState<UserType>(() => {
+    return localStorage.getItem('currentUser') as UserType || 'El';
+  });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('currentUser', currentUser);
+    showNotification({
+      title: 'User Switched',
+      message: `Now viewing ${currentUser}'s habits`,
+      color: 'blue'
+    });
+  }, [currentUser]);
 
   const value = useMemo(() => ({
     currentUser,

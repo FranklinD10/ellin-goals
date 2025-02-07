@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, UserType, HabitLog } from '../types';
 
@@ -81,3 +81,15 @@ export const getAnalytics = async () => {
     throw error;
   }
 };
+
+export function subscribeToHabits(userId: string, callback: (habits: Habit[]) => void) {
+  const q = query(collection(db, 'habits'), where('userId', '==', userId));
+  
+  return onSnapshot(q, (snapshot) => {
+    const habits = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Habit[];
+    callback(habits);
+  });
+}

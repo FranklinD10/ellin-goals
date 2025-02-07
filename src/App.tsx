@@ -1,4 +1,5 @@
-import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineTheme, MantineThemeOverride } from '@mantine/core';
+import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineTheme, MantineThemeOverride, LoadingOverlay } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
@@ -36,7 +37,25 @@ const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
         size: 'lg',
         radius: 'md',
       }
+    },
+    Notification: {
+      styles: {
+        root: {
+          '&::before': { display: 'none' }
+        }
+      }
     }
+  },
+  radius: {
+    sm: '6px',
+    md: '10px',
+    lg: '12px',
+    xl: '16px'
+  },
+  shadows: {
+    sm: '0 1px 3px rgba(0,0,0,0.1)',
+    md: '0 4px 6px rgba(0,0,0,0.07)',
+    lg: '0 10px 15px rgba(0,0,0,0.07)'
   }
 });
 
@@ -48,6 +67,7 @@ export default function App() {
   return (
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
       <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
+        <Notifications position="top-right" zIndex={2000} />
         <UserProvider>
           <BrowserRouter>
             <Routes>

@@ -58,24 +58,28 @@ export default function Layout() {
       </Container>
 
       <Box
-        sx={{
+        sx={(theme) => ({
           position: 'fixed',
           bottom: 0,
           left: 0,
           right: 0,
-          height: 60,
-          backgroundColor: 'white',
-          borderTop: '1px solid #eee',
+          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+          borderTop: `1px solid ${
+            theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2]
+          }`,
           display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          padding: '0 16px',
-          zIndex: 100
-        }}
+          flexDirection: 'column',
+          alignItems: 'center'
+        })}
       >
-        <NavLink to="/" icon="📊" label="Today" />
-        <NavLink to="/analytics" icon="📈" label="Stats" />
-        <NavLink to="/manage" icon="🎯" label="Habits" />
+        <Group spacing={0} position="center" sx={{ width: '100%' }}>
+          <NavLink to="/" icon="📊" label="Today" />
+          <NavLink to="/analytics" icon="📈" label="Stats" />
+          <NavLink to="/manage" icon="🎯" label="Habits" />
+        </Group>
+        <Text size="xs" color="dimmed" py={4}>
+          Created by Franklin with 💖
+        </Text>
       </Box>
     </AppShell>
   );

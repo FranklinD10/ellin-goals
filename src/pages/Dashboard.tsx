@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, Text, Checkbox, Group, Stack, Skeleton, Alert, Box } from '@mantine/core';
 import { useUser } from '../contexts/UserContext';
-import { getUserHabits, logHabitCompletion } from '../lib/firestore';
+import { getUserHabits, logHabitCompletion, getHabitLogs } from '../lib/firestore';
 import { Habit } from '../types';
 import StatsCard from '../components/StatsCard';
 import CategoryBadge from '../components/CategoryBadge';
@@ -9,6 +9,7 @@ import CategoryBadge from '../components/CategoryBadge';
 export default function Dashboard() {
   const { currentUser } = useUser();
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [completionRate, setCompletionRate] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,6 +20,19 @@ export default function Dashboard() {
         const userHabits = await getUserHabits(currentUser);
         console.log('Loaded habits:', userHabits); // Debug log
         setHabits(userHabits);
+
+        // Calculate completion rate for the current week
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const logsPromises = userHabits.map(habit => 
+          getHabitLogs(habit.id, sevenDaysAgo)
+        );
+        const allLogs = await Promise.all(logsPromises);
+        const totalLogs = allLogs.flat().length;
+        const possibleLogs = userHabits.length * 7;
+        
+        setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load habits. Please try again.');
@@ -48,7 +62,7 @@ export default function Dashboard() {
       </Text>
 
       <Group grow mb="md">
-        <StatsCard title="Weekly Progress" value={85} />
+        <StatsCard title="Weekly Progress" value={completionRate} />
         <StatsCard title="Total Habits" value={habits.length} suffix="" />
       </Group>
 
