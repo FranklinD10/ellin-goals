@@ -1,11 +1,12 @@
 import { Menu, UnstyledButton, Group, Avatar, Text } from '@mantine/core';
 import { IconChevronDown } from '@tabler/icons-react';
 import { useUser } from '../contexts/UserContext';
+import { UserType } from '../types';
 
 export default function UserSwitcher() {
   const { currentUser, setCurrentUser } = useUser();
 
-  const userDetails = {
+  const userDetails: Record<UserType, { color: string; avatar: string }> = {
     El: { color: 'pink', avatar: '👩' },
     Lin: { color: 'blue', avatar: '👨' }
   };
@@ -44,7 +45,7 @@ export default function UserSwitcher() {
           <Menu.Item
             key={user}
             icon={<Text>{details.avatar}</Text>}
-            onClick={() => setCurrentUser(user as 'El' | 'Lin')}
+            onClick={() => setCurrentUser(user as UserType)}
             sx={{ fontWeight: currentUser === user ? 600 : 400 }}
           >
             {user}

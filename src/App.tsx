@@ -1,13 +1,16 @@
 import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineTheme, MantineThemeOverride, LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { UserProvider } from './contexts/UserContext';
+import { UserProvider, useUser } from './contexts/UserContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Manage from './pages/Manage';
 import HealthCheck from './pages/HealthCheck';
+import { getUserSettings, saveUserSettings } from './lib/firestore';
+import { UserSettings } from './types';
 
 const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
   colorScheme,
@@ -61,25 +64,44 @@ const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
 
 export default function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-  const toggleColorScheme = (value?: ColorScheme) =>
-    setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+  const { userData, currentUser } = useUser();
+
+  useEffect(() => {
+    if (userData?.settings?.theme) {
+      setColorScheme(userData.settings.theme);
+    }
+  }, [userData]);
+
+  const toggleColorScheme = async (value?: ColorScheme) => {
+    const newTheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
+    setColorScheme(newTheme);
+    
+    const settings: UserSettings = {
+      theme: newTheme,
+      notifications: userData?.settings?.notifications ?? true
+    };
+    
+    await saveUserSettings(currentUser, settings);
+  };
 
   return (
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
       <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
         <Notifications position="top-right" zIndex={2000} />
-        <UserProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="analytics" element={<Analytics />} />
-                <Route path="manage" element={<Manage />} />
-                <Route path="health" element={<HealthCheck />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </UserProvider>
+        <AuthProvider>
+          <UserProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="analytics" element={<Analytics />} />
+                  <Route path="manage" element={<Manage />} />
+                  <Route path="health" element={<HealthCheck />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </UserProvider>
+        </AuthProvider>
       </MantineProvider>
     </ColorSchemeProvider>
   );

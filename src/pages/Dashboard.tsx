@@ -5,6 +5,7 @@ import { getUserHabits, logHabitCompletion, getHabitLogs } from '../lib/firestor
 import { Habit } from '../types';
 import StatsCard from '../components/StatsCard';
 import CategoryBadge from '../components/CategoryBadge';
+import { playCompletionSound, animateCompletion } from '../utils/effects';
 
 export default function Dashboard() {
   const { currentUser } = useUser();
@@ -66,7 +67,15 @@ export default function Dashboard() {
     };
   }, [currentUser]);
 
-  const handleToggle = async (habitId: string) => {
+  const handleToggle = async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const checkbox = event.target;
+    const card = checkbox.closest('.mantine-Card-root');
+    
+    if (checkbox.checked && card) {
+      playCompletionSound();
+      animateCompletion(card as HTMLElement);
+    }
+    
     await logHabitCompletion(habitId, currentUser, new Date());
   };
 
@@ -111,7 +120,7 @@ export default function Dashboard() {
                 <Checkbox
                   size="md"
                   radius="xl"
-                  onChange={() => handleToggle(habit.id)}
+                  onChange={(event) => handleToggle(habit.id, event)}
                 />
               </Group>
             </Card>

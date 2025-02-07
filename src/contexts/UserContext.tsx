@@ -1,9 +1,11 @@
-import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { showNotification } from '@mantine/notifications';
-import { UserType } from '../types';
+import { UserType, UserData } from '../types';
+import { getUserData } from '../lib/firestore';
 
 interface UserContextType {
   currentUser: UserType;
+  userData: UserData | null;
   setCurrentUser: (user: UserType) => void;
   isLoading: boolean;
 }
@@ -11,43 +13,57 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<UserType>(() => {
-    return localStorage.getItem('currentUser') as UserType || 'El';
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserType>(
+    (localStorage.getItem('currentUser') as UserType) || 'El'
+  );
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSetCurrentUser = (user: UserType) => {
+  useEffect(() => {
+    const loadUserData = async () => {
+      setIsLoading(true);
+      const data = await getUserData(currentUser);
+      setUserData(data);
+      setIsLoading(false);
+    };
+
+    loadUserData();
+  }, [currentUser]);
+
+  const handleSetUser = (user: UserType) => {
     setIsLoading(true);
     setCurrentUser(user);
-    setTimeout(() => setIsLoading(false), 100); // Give time for state to update
+    localStorage.setItem('currentUser', user);
   };
 
   useEffect(() => {
-    localStorage.setItem('currentUser', currentUser);
-    showNotification({
-      title: 'User Switched',
-      message: `Now viewing ${currentUser}'s habits`,
-      color: 'blue'
-    });
-  }, [currentUser]);
-
-  const value = useMemo(() => ({
-    currentUser,
-    setCurrentUser: handleSetCurrentUser,
-    isLoading
-  }), [currentUser, isLoading]);
+    if (!isLoading) {
+      showNotification({
+        title: 'User Switched',
+        message: `Now viewing ${currentUser}'s habits`,
+        color: 'blue'
+      });
+    }
+  }, [currentUser, isLoading]);
 
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider 
+      value={{ 
+        currentUser, 
+        userData,
+        setCurrentUser: handleSetUser, 
+        isLoading 
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
 }
 
-export function useUser() {
+export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-}
+};

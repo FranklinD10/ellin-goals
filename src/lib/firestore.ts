@@ -1,6 +1,6 @@
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import { Habit, UserType, HabitLog } from '../types';
+import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
 
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id) throw new Error('user_id is undefined');
@@ -98,3 +98,28 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
     callback(habits);
   });
 }
+
+export const saveUserSettings = async (userId: string, settings: UserSettings) => {
+  await setDoc(doc(db, 'user_settings', userId), settings, { merge: true });
+};
+
+export const getUserSettings = async (userId: string) => {
+  const docRef = doc(db, 'user_settings', userId);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : null;
+};
+
+export const getUserData = async (userId: UserType): Promise<UserData | null> => {
+  try {
+    const userRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      return userDoc.data() as UserData;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return null;
+  }
+};

@@ -1,0 +1,15 @@
+export const playCompletionSound = () => {
+  const audio = new Audio('/complete.mp3');  // You'll need to add this sound file to public folder
+  audio.play().catch(err => console.warn('Audio playback failed:', err));
+};
+
+export const animateCompletion = (element: HTMLElement) => {
+  element.animate([
+    { transform: 'scale(1)', opacity: 1 },
+    { transform: 'scale(1.2)', opacity: 0.8 },
+    { transform: 'scale(1)', opacity: 1 }
+  ], {
+    duration: 300,
+    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  });
+};

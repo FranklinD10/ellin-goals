@@ -14,7 +14,8 @@ const CATEGORIES = [
   { value: 'learning', label: '📚 Learning' },
   { value: 'social', label: '👥 Social' },
   { value: 'creative', label: '🎨 Creative' },
-  { value: 'finance', label: '💰 Finance' }
+  { value: 'finance', label: '💰 Finance' },
+  { value: 'spiritual', label: '📖 Spiritual' }
 ];
 
 function HabitsList() {
@@ -104,7 +105,7 @@ export default function Manage() {
                 onChange={(val) => setCategory(val || '')}
                 data={CATEGORIES}
                 required
-                searchable
+                searchable={false}  // Disable searchable to prevent keyboard
                 clearable
               />
               <Button 

@@ -2,6 +2,18 @@ import { Timestamp } from 'firebase/firestore';
 
 export type UserType = 'El' | 'Lin';
 
+export interface UserData {
+  displayName: string;
+  email: string;
+  uid: string;
+  settings: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+  };
+  lastLogin: Date;
+  createdAt: Date;
+}
+
 export interface User {
   id: string;
   display_name: string;
@@ -35,4 +47,9 @@ export interface UserStats {
 export interface DailyCheck {
   date: string;
   completed: boolean;
+}
+
+export interface UserSettings {
+  theme: 'light' | 'dark';
+  notifications: boolean;
 }
