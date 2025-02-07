@@ -1,0 +1,66 @@
+import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineTheme, MantineThemeOverride } from '@mantine/core';
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { UserProvider } from './contexts/UserContext';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
+import Manage from './pages/Manage';
+import HealthCheck from './pages/HealthCheck';
+
+const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
+  colorScheme,
+  colors: {
+    primary: ['#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B'] as const,
+    gray: colorScheme === 'dark' 
+      ? ['#C1C2C5', '#A6A7AB', '#909296', '#5C5F66', '#373A40', '#2C2E33', '#25262B', '#1A1B1E', '#141517', '#101113']
+      : ['#F8F9FA', '#F1F3F5', '#E9ECEF', '#DEE2E6', '#CED4DA', '#ADB5BD', '#868E96', '#495057', '#343A40', '#212529']
+  },
+  primaryColor: 'primary',
+  globalStyles: (theme: MantineTheme) => ({
+    body: {
+      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
+      maxWidth: '430px',
+      margin: '0 auto',
+    },
+  }),
+  components: {
+    Card: {
+      defaultProps: {
+        p: 'md',
+        radius: 'md',
+      }
+    },
+    Button: {
+      defaultProps: {
+        size: 'lg',
+        radius: 'md',
+      }
+    }
+  }
+});
+
+export default function App() {
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
+  const toggleColorScheme = (value?: ColorScheme) =>
+    setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+
+  return (
+    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
+      <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
+        <UserProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="manage" element={<Manage />} />
+                <Route path="health" element={<HealthCheck />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </UserProvider>
+      </MantineProvider>
+    </ColorSchemeProvider>
+  );
+}

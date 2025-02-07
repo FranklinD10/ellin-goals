@@ -1,0 +1,7 @@
+.env
+node_modules
+serviceAccountKey.json
+firestore.rules
+gemini_flash_config.json
+# Local Netlify folder
+.netlify
