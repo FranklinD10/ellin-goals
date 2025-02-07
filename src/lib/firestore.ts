@@ -31,13 +31,18 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
 };
 
 export const getHabitLogs = async (habitId: string, startDate: Date) => {
-  const q = query(
-    collection(db, 'habit_logs'),
-    where('habit_id', '==', habitId),
-    where('date', '>=', Timestamp.fromDate(startDate))
-  );
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as HabitLog));
+  try {
+    const q = query(
+      collection(db, 'habit_logs'),
+      where('habit_id', '==', habitId),
+      where('date', '>=', Timestamp.fromDate(startDate))
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as HabitLog));
+  } catch (error) {
+    console.warn(`Error getting logs for habit ${habitId}:`, error);
+    return []; // Return empty array instead of throwing
+  }
 };
 
 export const logHabitCompletion = async (habitId: string, userId: UserType, date: Date) => {

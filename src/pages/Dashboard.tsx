@@ -14,33 +14,56 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadHabits = async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error state
         const userHabits = await getUserHabits(currentUser);
-        console.log('Loaded habits:', userHabits); // Debug log
-        setHabits(userHabits);
+        
+        if (mounted) {
+          setHabits(userHabits);
 
-        // Calculate completion rate for the current week
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        const logsPromises = userHabits.map(habit => 
-          getHabitLogs(habit.id, sevenDaysAgo)
-        );
-        const allLogs = await Promise.all(logsPromises);
-        const totalLogs = allLogs.flat().length;
-        const possibleLogs = userHabits.length * 7;
-        
-        setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
+          // Check if we have habits before trying to get logs
+          if (userHabits.length > 0) {
+            try {
+              const sevenDaysAgo = new Date();
+              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+              
+              const logsPromises = userHabits.map(habit => 
+                getHabitLogs(habit.id, sevenDaysAgo)
+              );
+              const allLogs = await Promise.all(logsPromises);
+              const totalLogs = allLogs.flat().length;
+              const possibleLogs = userHabits.length * 7;
+              
+              setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
+            } catch (logError) {
+              console.warn('Error loading logs:', logError);
+              // Don't show this error to user, just set completion rate to 0
+              setCompletionRate(0);
+            }
+          }
+        }
       } catch (err) {
         console.error('Error:', err);
-        setError('Failed to load habits. Please try again.');
+        if (mounted) {
+          setError('Failed to load habits. Please try again.');
+          setHabits([]);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
+
     loadHabits();
+
+    return () => {
+      mounted = false;
+    };
   }, [currentUser]);
 
   const handleToggle = async (habitId: string) => {

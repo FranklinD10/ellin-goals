@@ -16,6 +16,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleSetCurrentUser = (user: UserType) => {
+    setIsLoading(true);
+    setCurrentUser(user);
+    setTimeout(() => setIsLoading(false), 100); // Give time for state to update
+  };
+
   useEffect(() => {
     localStorage.setItem('currentUser', currentUser);
     showNotification({
@@ -27,7 +33,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     currentUser,
-    setCurrentUser,
+    setCurrentUser: handleSetCurrentUser,
     isLoading
   }), [currentUser, isLoading]);
 
