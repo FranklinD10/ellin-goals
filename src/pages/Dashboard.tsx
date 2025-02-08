@@ -8,7 +8,7 @@ import CategoryBadge from '../components/CategoryBadge';
 import { playCompletionSound, animateCompletion } from '../utils/effects';
 
 export default function Dashboard() {
-  const { currentUser } = useUser();
+  const { currentUser, isTransitioning } = useUser();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completionRate, setCompletionRate] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -16,55 +16,63 @@ export default function Dashboard() {
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
 
   const loadData = useCallback(async () => {
+    if (isTransitioning) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      // Get habits and today's logs in parallel
       const [userHabits, todayLogs] = await Promise.all([
         getUserHabits(currentUser),
         getTodayLogs(currentUser)
       ]);
 
-      console.debug('Loaded data:', { userHabits, todayLogs });
-
-      setHabits(userHabits);
-      
-      // Map completed habits
-      const completedHabitIds = new Set(
-        todayLogs
-          .filter(log => log.completed)
-          .map(log => log.habit_id)
-      );
-      
-      setCompletedHabits(completedHabitIds);
-
-      // Calculate completion rate
-      if (userHabits.length > 0) {
-        const completionRate = (completedHabitIds.size / userHabits.length) * 100;
-        setCompletionRate(completionRate);
+      if (!isTransitioning) { // Check again before updating state
+        setHabits(userHabits);
+        const completedHabitIds = new Set(
+          todayLogs
+            .filter(log => log.completed)
+            .map(log => log.habit_id)
+        );
+        setCompletedHabits(completedHabitIds);
+        
+        if (userHabits.length > 0) {
+          setCompletionRate((completedHabitIds.size / userHabits.length) * 100);
+        }
       }
     } catch (err) {
       console.error('Error loading data:', err);
-      setError('Failed to load habits');
+      if (!isTransitioning) {
+        setError('Failed to load habits');
+      }
     } finally {
-      setLoading(false);
+      if (!isTransitioning) {
+        setLoading(false);
+      }
     }
-  }, [currentUser]);
+  }, [currentUser, isTransitioning]);
 
-  // Reload data when component mounts or user changes
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isTransitioning) {
+      // Reset states when transitioning
+      setHabits([]);
+      setCompletedHabits(new Set());
+      setCompletionRate(0);
+      setLoading(true);
+    } else {
+      loadData();
+    }
+  }, [currentUser, isTransitioning, loadData]);
 
-  const handleToggle = async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleToggle = useCallback(async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const isCompleted = event.target.checked;
     const card = event.target.closest('.mantine-Card-root');
     
     try {
       await logHabitCompletion(habitId, currentUser, new Date(), isCompleted);
       
-      // Update local state immediately
       setCompletedHabits(prev => {
         const next = new Set(prev);
         if (isCompleted) {
@@ -80,23 +88,22 @@ export default function Dashboard() {
       });
 
       // Recalculate completion rate
-      setCompletionRate(prev => {
-        const totalHabits = habits.length;
-        if (totalHabits === 0) return 0;
-        const completedCount = isCompleted ? prev + 1 : prev - 1;
-        return (completedCount / totalHabits) * 100;
-      });
-
-      // Reload data to ensure consistency
-      await loadData();
+      if (habits.length > 0) {
+        setCompletionRate(prev => {
+          const completedCount = isCompleted ? 
+            completedHabits.size + 1 : 
+            completedHabits.size - 1;
+          return (completedCount / habits.length) * 100;
+        });
+      }
     } catch (error) {
       console.error('Error toggling habit:', error);
-      // Revert local state on error
-      await loadData();
+      await loadData(); // Reload data on error to ensure consistency
     }
-  };
+  }, [currentUser, habits.length, completedHabits.size, loadData]);
 
-  if (loading) {
+  // Show loading state while transitioning or loading
+  if (isTransitioning || loading) {
     return (
       <Stack spacing="md" p="md">
         <Skeleton height={30} width="40%" mb="xl" />

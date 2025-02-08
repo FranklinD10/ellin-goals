@@ -89,25 +89,33 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
 
-  console.debug('Getting logs for range:', { todayStart, todayEnd });
-
-  const q = query(
-    collection(db, 'habit_logs'),
+  const primaryConstraints = [
     where('user_id', '==', userId),
     where('date', '>=', Timestamp.fromDate(todayStart)),
     where('date', '<=', Timestamp.fromDate(todayEnd)),
     where('deleted', '!=', true)
-  );
+  ];
+
+  // Simpler fallback query that doesn't require composite index
+  const fallbackConstraints = [
+    where('user_id', '==', userId)
+  ];
 
   try {
-    const snapshot = await getDocs(q);
-    const logs = snapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    })) as HabitLog[];
-
-    console.debug('Retrieved logs:', logs);
-    return logs;
+    return await ClientIndexManager.executeQueryWithFallback<HabitLog>(
+      'habit_logs',
+      primaryConstraints,
+      fallbackConstraints,
+      (log) => {
+        if (!log.date) return false;
+        const logDate = (log.date as Timestamp).toDate();
+        return (
+          logDate >= todayStart &&
+          logDate <= todayEnd &&
+          !log.deleted
+        );
+      }
+    );
   } catch (error) {
     console.error('Error fetching logs:', error);
     return [];

@@ -1,63 +1,61 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { showNotification } from '@mantine/notifications';
 import { UserType, UserData } from '../types';
-import { getUserData, getUserHabits } from '../lib/firestore';
+import { getUserData } from '../lib/firestore';
 import { LoadingOverlay } from '@mantine/core';
 
 interface UserContextType {
   currentUser: UserType;
   userData: UserData | null;
   setCurrentUser: (user: UserType) => void;
-  isLoading: boolean;
+  isTransitioning: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<UserType>(
+  const [currentUser, setCurrentUser] = useState<UserType>(() => 
     (localStorage.getItem('currentUser') as UserType) || 'El'
   );
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      setIsLoading(true);
-      const data = await getUserData(currentUser);
-      setUserData(data);
-      setIsLoading(false);
-    };
-
-    loadUserData();
-  }, [currentUser]);
-
-  const handleSetUser = (user: UserType) => {
-    setIsLoading(true);
-    setCurrentUser(user);
+  const handleUserChange = async (user: UserType) => {
+    setIsTransitioning(true);
     localStorage.setItem('currentUser', user);
+    setCurrentUser(user);
+    
+    // Force a small delay to ensure state updates propagate
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Show notification here instead of in the effect
+    showNotification({
+      title: 'User Switched',
+      message: `Now viewing ${user}'s habits`,
+      color: 'blue'
+    });
+    
+    setIsTransitioning(false);
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      showNotification({
-        title: 'User Switched',
-        message: `Now viewing ${currentUser}'s habits`,
-        color: 'blue'
-      });
-    }
-  }, [currentUser, isLoading]);
+    const loadUserData = async () => {
+      if (!isTransitioning) {
+        const data = await getUserData(currentUser);
+        setUserData(data);
+      }
+    };
 
-  if (isLoading) {
-    return <LoadingOverlay visible={true} overlayBlur={2} />;
-  }
+    loadUserData();
+  }, [currentUser, isTransitioning]);
 
   return (
     <UserContext.Provider 
       value={{ 
         currentUser, 
         userData,
-        setCurrentUser: handleSetUser, 
-        isLoading 
+        setCurrentUser: handleUserChange, 
+        isTransitioning 
       }}
     >
       {children}
