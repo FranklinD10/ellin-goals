@@ -1,104 +1,152 @@
 import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineThemeOverride, LoadingOverlay, MantineTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { UserProvider, useUser } from './contexts/UserContext';
+import { useState, useEffect, useMemo } from 'react';
+import { BrowserRouter, createBrowserRouter, RouterProvider, Routes, Route } from 'react-router-dom';
+import { UserProvider } from './contexts/UserContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Manage from './pages/Manage';
 import HealthCheck from './pages/HealthCheck';
-import { getUserSettings, saveUserSettings } from './lib/firestore';
-import { UserSettings } from './types';
-import ThemeManager from './components/ThemeManager';
+import Settings from './pages/Settings';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { UpdateNotification } from './components/UpdateNotification';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { audioManager } from './utils/audio';
+import { ThemeColorType } from './types/user';
+
+const themes = {
+  red: { color: '#FF4B4B', label: 'Red' },
+  pink: { color: '#FF69B4', label: 'Pink' },
+  purple: { color: '#9C27B0', label: 'Purple' },
+  blue: { color: '#2196F3', label: 'Blue' },
+  green: { color: '#4CAF50', label: 'Green' },
+  yellow: { color: '#FFC107', label: 'Yellow' },
+} as const;
 
 const themeColors: Record<string, [string, string, string, string, string, string, string, string, string, string]> = {
-  red: ['#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B'],
-  pink: ['#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4'],
-  purple: ['#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0'],
-  blue: ['#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3'],
-  green: ['#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50'],
-  yellow: ['#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107']
+  red: new Array(10).fill('#FF4B4B') as [string, string, string, string, string, string, string, string, string, string],
+  pink: new Array(10).fill('#FF69B4') as [string, string, string, string, string, string, string, string, string, string],
+  purple: new Array(10).fill('#9C27B0') as [string, string, string, string, string, string, string, string, string, string],
+  blue: new Array(10).fill('#2196F3') as [string, string, string, string, string, string, string, string, string, string],
+  green: new Array(10).fill('#4CAF50') as [string, string, string, string, string, string, string, string, string, string],
+  yellow: new Array(10).fill('#FFC107') as [string, string, string, string, string, string, string, string, string, string]
 };
 
-export type ThemeColorType = keyof typeof themeColors;
+const getThemeColors = (color: string): [string, string, string, string, string, string, string, string, string, string] => {
+  const baseColor = themes[color as ThemeColorType].color;
+  return [
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+    baseColor,
+  ];
+};
 
-export const getTheme = (colorScheme: ColorScheme, themeColor: keyof typeof themeColors = 'red'): MantineThemeOverride => ({
-  colorScheme,
-  colors: {
-    primary: themeColors[themeColor],
-    gray: colorScheme === 'dark' 
-      ? ['#C1C2C5', '#A6A7AB', '#909296', '#5C5F66', '#373A40', '#2C2E33', '#25262B', '#1A1B1E', '#141517', '#101113']
-      : ['#F8F9FA', '#F1F3F5', '#E9ECEF', '#DEE2E6', '#CED4DA', '#ADB5BD', '#868E96', '#495057', '#343A40', '#212529']
-  },
-  primaryColor: 'primary',
-  globalStyles: (theme: MantineTheme) => ({
-    body: {
-      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
-      maxWidth: '430px',
-      margin: '0 auto',
-    },
-  }),
-  components: {
-    Card: {
-      defaultProps: {
-        p: 'md',
-        radius: 'md',
-      }
-    },
-    Button: {
-      defaultProps: {
-        size: 'lg',
-        radius: 'md',
-      }
-    },
-    Notification: {
-      styles: {
-        root: {
-          '&::before': { display: 'none' }
-        }
-      }
-    }
-  },
-  radius: {
-    sm: '6px',
-    md: '10px',
-    lg: '12px',
-    xl: '16px'
-  },
-  shadows: {
-    sm: '0 1px 3px rgba(0,0,0,0.1)',
-    md: '0 4px 6px rgba(0,0,0,0.07)',
-    lg: '0 10px 15px rgba(0,0,0,0.07)'
+// Create router with future flags
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "analytics", element: <Analytics /> },
+      { path: "manage", element: <Manage /> },
+      { path: "health", element: <HealthCheck /> },
+      { path: "settings", element: <Settings /> }
+    ],
+  }
+], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
   }
 });
 
-export default function App() {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-  const [themeColor, setThemeColor] = useState<keyof typeof themeColors>('red');
+function AppContent() {
+  const { colorScheme, themeColor, toggleColorScheme } = useTheme();
+
+  const theme = useMemo(() => ({
+    colorScheme,
+    colors: {
+      primary: getThemeColors(themeColor),
+      gray: Array(10).fill('').map((_, i) => 
+        colorScheme === 'dark' 
+          ? ['#C1C2C5', '#A6A7AB', '#909296', '#5C5F66', '#373A40', '#2C2E33', '#25262B', '#1A1B1E', '#141517', '#101113'][i]
+          : ['#F8F9FA', '#F1F3F5', '#E9ECEF', '#DEE2E6', '#CED4DA', '#ADB5BD', '#868E96', '#495057', '#343A40', '#212529'][i]
+      ) as [string, string, string, string, string, string, string, string, string, string]
+    },
+    primaryColor: 'primary',
+    components: {
+      Card: {
+        defaultProps: {
+          p: 'md',
+          radius: 'md',
+        }
+      },
+      Button: {
+        defaultProps: {
+          size: 'lg',
+          radius: 'md',
+        }
+      }
+    }
+  }), [colorScheme, themeColor]);
+
+  useEffect(() => {
+    // Initialize audio system
+    audioManager.initialize().catch(console.error);
+    
+    // Remove initial loader
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.transition = 'opacity 0.3s ease-out';
+      setTimeout(() => loader.remove(), 300);
+    }
+  }, []);
+
+  useEffect(() => {
+    const cleanup = () => {
+      // Ensure any pending syncs are processed before unload
+      localStorage.setItem('lastSyncTime', Date.now().toString());
+    };
+
+    window.addEventListener('beforeunload', cleanup);
+    return () => window.removeEventListener('beforeunload', cleanup);
+  }, []);
 
   return (
-    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={(value?: ColorScheme) => setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'))}>
-      <MantineProvider theme={getTheme(colorScheme, themeColor)} withGlobalStyles withNormalizeCSS>
+    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
+      <MantineProvider 
+        theme={theme} 
+        withGlobalStyles 
+        withNormalizeCSS
+      >
         <Notifications position="top-right" zIndex={2000} />
-        <AuthProvider>
-          <UserProvider>
-            <ThemeManager onColorSchemeChange={setColorScheme} onThemeColorChange={setThemeColor}>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Layout />}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="analytics" element={<Analytics />} />
-                    <Route path="manage" element={<Manage />} />
-                    <Route path="health" element={<HealthCheck />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </ThemeManager>
-          </UserProvider>
-        </AuthProvider>
+        <RouterProvider router={router} />
       </MantineProvider>
     </ColorSchemeProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <UserProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+        </UserProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

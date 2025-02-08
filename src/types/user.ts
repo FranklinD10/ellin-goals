@@ -2,6 +2,15 @@ export type ThemeColorType = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yel
 
 export interface UserSettings {
   theme: 'light' | 'dark';
-  notifications: boolean;
   themeColor: ThemeColorType;
+  notifications: boolean;
+}
+
+export interface UserData {
+  displayName: string;
+  email: string;
+  uid: string;
+  settings?: UserSettings;
+  createdAt: any;
+  lastLogin: any;
 }

@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "ellin-goals"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "ellin-goals-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -14,7 +14,16 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// Initialize Firestore with persistence enabled (single initialization)
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+  ignoreUndefinedProperties: true,
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
+
 export const auth = getAuth(app);
 export let analytics: Analytics | undefined;
 
@@ -33,6 +42,10 @@ try {
 } catch (error) {
   console.error('Auth initialization failed:', error);
 }
+
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.warn('Auth persistence failed:', error);
+});
 
 export const signInAnonymousUser = async () => {
   try {

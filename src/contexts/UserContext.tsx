@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { showNotification } from '@mantine/notifications';
 import { UserType, UserData } from '../types';
-import { getUserData } from '../lib/firestore';
+import { getUserData, getUserHabits } from '../lib/firestore';
+import { LoadingOverlay } from '@mantine/core';
 
 interface UserContextType {
   currentUser: UserType;
@@ -45,6 +46,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       });
     }
   }, [currentUser, isLoading]);
+
+  if (isLoading) {
+    return <LoadingOverlay visible={true} overlayBlur={2} />;
+  }
 
   return (
     <UserContext.Provider 

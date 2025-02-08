@@ -1,9 +1,8 @@
+import { audioManager } from './audio';
 import ConfettiGenerator from 'confetti-js';
 
-export const playCompletionSound = () => {
-  const audio = new Audio('/sounds/complete.mp3'); // Make sure this file exists in your public folder
-  audio.volume = 0.5;
-  audio.play().catch(err => console.warn('Audio playback failed:', err));
+export const playCompletionSound = async () => {
+  await audioManager.playSound('completion');
 };
 
 export const triggerConfetti = () => {
@@ -23,23 +22,24 @@ export const triggerConfetti = () => {
     respawn: false
   };
   
-  const confetti = new ConfettiGenerator(confettiSettings);
-  confetti.render();
+  const confettiInstance = new ConfettiGenerator(confettiSettings);
+  confettiInstance.render();
 
   // Clear confetti after animation
   setTimeout(() => {
-    confetti.clear();
+    confettiInstance.clear();
   }, 2500);
 };
 
 export const animateCompletion = (element: HTMLElement) => {
   triggerConfetti();
   element.animate([
-    { transform: 'scale(1)', opacity: 1 },
-    { transform: 'scale(1.2)', opacity: 0.8 },
-    { transform: 'scale(1)', opacity: 1 }
+    { transform: 'scale(1) translateZ(0)', opacity: 1 },
+    { transform: 'scale(1.2) translateZ(0)', opacity: 0.8 },
+    { transform: 'scale(1) translateZ(0)', opacity: 1 }
   ], {
     duration: 300,
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    fill: 'forwards',
   });
 };

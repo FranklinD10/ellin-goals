@@ -13,38 +13,52 @@ export default function Dashboard() {
   const [completionRate, setCompletionRate] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let mounted = true;
 
-    const loadHabits = async () => {
+    const loadHabitsAndLogs = async () => {
       try {
         setLoading(true);
-        setError(null); // Reset error state
+        setError(null);
         const userHabits = await getUserHabits(currentUser);
         
-        if (mounted) {
-          setHabits(userHabits);
+        if (!mounted) return;
+        
+        setHabits(userHabits);
 
-          // Check if we have habits before trying to get logs
-          if (userHabits.length > 0) {
-            try {
-              const sevenDaysAgo = new Date();
-              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-              
-              const logsPromises = userHabits.map(habit => 
-                getHabitLogs(habit.id, sevenDaysAgo)
-              );
-              const allLogs = await Promise.all(logsPromises);
-              const totalLogs = allLogs.flat().length;
-              const possibleLogs = userHabits.length * 7;
-              
-              setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
-            } catch (logError) {
-              console.warn('Error loading logs:', logError);
-              // Don't show this error to user, just set completion rate to 0
-              setCompletionRate(0);
-            }
+        // Load today's logs
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const completed = new Set<string>();
+        for (const habit of userHabits) {
+          const logs = await getHabitLogs(habit.id, today);
+          if (logs.some(log => log.completed)) {
+            completed.add(habit.id);
+          }
+        }
+        setCompletedHabits(completed);
+
+        // Check if we have habits before trying to get logs
+        if (userHabits.length > 0) {
+          try {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const logsPromises = userHabits.map(habit => 
+              getHabitLogs(habit.id, sevenDaysAgo)
+            );
+            const allLogs = await Promise.all(logsPromises);
+            const totalLogs = allLogs.flat().length;
+            const possibleLogs = userHabits.length * 7;
+            
+            setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
+          } catch (logError) {
+            console.warn('Error loading logs:', logError);
+            // Don't show this error to user, just set completion rate to 0
+            setCompletionRate(0);
           }
         }
       } catch (err) {
@@ -60,7 +74,7 @@ export default function Dashboard() {
       }
     };
 
-    loadHabits();
+    loadHabitsAndLogs();
 
     return () => {
       mounted = false;
@@ -68,15 +82,29 @@ export default function Dashboard() {
   }, [currentUser]);
 
   const handleToggle = async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const checkbox = event.target;
-    const card = checkbox.closest('.mantine-Card-root');
+    const isCompleted = event.target.checked;
+    const card = event.target.closest('.mantine-Card-root');
     
-    if (checkbox.checked && card) {
-      playCompletionSound();
-      animateCompletion(card as HTMLElement);
+    try {
+      await logHabitCompletion(habitId, currentUser, new Date(), isCompleted);
+      
+      setCompletedHabits(prev => {
+        const next = new Set(prev);
+        if (isCompleted) {
+          next.add(habitId);
+          if (card) {
+            playCompletionSound();
+            animateCompletion(card as HTMLElement);
+          }
+        } else {
+          next.delete(habitId);
+        }
+        return next;
+      });
+    } catch (error) {
+      console.error('Error logging habit completion:', error);
+      // Optionally show an error notification here
     }
-    
-    await logHabitCompletion(habitId, currentUser, new Date());
   };
 
   if (error) {
@@ -120,6 +148,7 @@ export default function Dashboard() {
                 <Checkbox
                   size="md"
                   radius="xl"
+                  checked={completedHabits.has(habit.id)}
                   onChange={(event) => handleToggle(habit.id, event)}
                 />
               </Group>

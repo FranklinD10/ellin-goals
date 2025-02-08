@@ -7,12 +7,13 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
+    hasError: false,
+    error: null
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -28,10 +29,10 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <Stack align="center" spacing="md" p="xl">
           <Alert color="red" title="Something went wrong">
-            <Text>We're sorry, but something went wrong. Please try again.</Text>
+            <Text size="sm">The application encountered an error.</Text>
           </Alert>
-          <Button onClick={() => globalThis.location.reload()}>
-            Reload Page
+          <Button onClick={() => window.location.reload()}>
+            Reload App
           </Button>
         </Stack>
       );

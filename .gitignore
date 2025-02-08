@@ -1,5 +1,5 @@
 # dependencies
-node_modules
+node_modules/
 .pnp
 .pnp.js
 
@@ -7,8 +7,8 @@ node_modules
 coverage
 
 # production
-dist
-build
+dist/
+build/
 
 # misc
 .DS_Store
@@ -28,3 +28,30 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# Firebase
+.firebase/
+*.log
+firebase-debug.log*
+firebase-debug.*.log*
+.firebaserc
+
+# Build
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# Emulator data
+*-debug.log
+ui-debug.log

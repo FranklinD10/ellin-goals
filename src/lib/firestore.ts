@@ -1,22 +1,41 @@
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
+import { startOfDay } from 'date-fns';
+import axiosRetry from 'axios-retry';
+import axios from 'axios';
+
+// Use axiosRetry instead of destructuring retry
+axiosRetry(axios, { retries: 3 });
 
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id) throw new Error('user_id is undefined');
   
-  const docRef = await addDoc(collection(db, 'habits'), {
-    ...habit,
-    created_at: Timestamp.now(),
-  });
-  return { ...habit, id: docRef.id, created_at: Timestamp.now() };
+  try {
+    const docRef = await addDoc(collection(db, 'habits'), {
+      ...habit,
+      created_at: Timestamp.now(),
+      deleted: false // Add this field explicitly
+    });
+
+    // Return the complete habit object
+    return { 
+      id: docRef.id, 
+      ...habit, 
+      created_at: Timestamp.now() 
+    } as Habit;
+  } catch (error) {
+    console.error('Error adding habit:', error);
+    throw error;
+  }
 };
 
 export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
   try {
     const q = query(
       collection(db, 'habits'),
-      where('user_id', '==', userId)
+      where('user_id', '==', userId),
+      where('deleted', '==', false)  // Explicitly check for non-deleted habits
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
@@ -24,8 +43,24 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
       ...doc.data(),
       created_at: doc.data().created_at || Timestamp.now()
     })) as Habit[];
-  } catch (error) {
-    console.error('Error fetching habits:', error);
+  } catch (error: any) {
+    // Check for missing index error
+    if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+      console.error('Missing Firestore index:', error);
+      // Fallback to simple query without deleted filter
+      const fallbackQuery = query(
+        collection(db, 'habits'),
+        where('user_id', '==', userId)
+      );
+      const snapshot = await getDocs(fallbackQuery);
+      return snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          created_at: doc.data().created_at || Timestamp.now()
+        }))
+        .filter(habit => !habit.deleted) as Habit[]; // Filter in memory as fallback
+    }
     throw error;
   }
 };
@@ -35,7 +70,8 @@ export const getHabitLogs = async (habitId: string, startDate: Date) => {
     const q = query(
       collection(db, 'habit_logs'),
       where('habit_id', '==', habitId),
-      where('date', '>=', Timestamp.fromDate(startDate))
+      where('date', '>=', Timestamp.fromDate(startDate)),
+      where('deleted', '!=', true)
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as HabitLog));
@@ -45,32 +81,51 @@ export const getHabitLogs = async (habitId: string, startDate: Date) => {
   }
 };
 
-export const logHabitCompletion = async (habitId: string, userId: UserType, date: Date) => {
-  try {
-    const docId = `${habitId}_${date.toISOString().split('T')[0]}`;
-    await setDoc(doc(db, 'habit_logs', docId), {
-      habitId,
-      userId,
-      date: Timestamp.fromDate(date),
-      completed: true,
-      updatedAt: Timestamp.now()
-    }, { merge: true });
-  } catch (error) {
-    console.error('Error logging habit completion:', error);
-  }
+export const logHabitCompletion = async (
+  habitId: string, 
+  userId: UserType, 
+  date: Date, 
+  completed: boolean
+) => {
+  const retries = 3;
+  const attempt = async (retryCount: number) => {
+    try {
+      const startDay = startOfDay(date);
+      const dateStr = startDay.toISOString().split('T')[0];
+      const docId = `${habitId}_${dateStr}_${userId}`;
+      await setDoc(doc(db, 'habit_logs', docId), {
+        habit_id: habitId,
+        userId,
+        date: Timestamp.fromDate(startDay),
+        completed,
+        updatedAt: Timestamp.now()
+      }, { merge: true });
+    } catch (error) {
+      if (retryCount < retries) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return attempt(retryCount + 1);
+      }
+      throw error;
+    }
+  };
+  return attempt(0);
 };
 
 export const deleteHabit = async (habitId: string) => {
-  // Delete habit
-  await deleteDoc(doc(db, 'habits', habitId));
+  const batch = writeBatch(db);
   
-  // Delete associated logs
+  // Mark habit as deleted instead of actually deleting it
+  const habitRef = doc(db, 'habits', habitId);
+  batch.update(habitRef, { 
+    deleted: true,
+    deletedAt: Timestamp.now() 
+  });
+  
+  // Optionally, mark all related logs as deleted too
   const logsQuery = query(collection(db, 'habit_logs'), where('habit_id', '==', habitId));
   const snapshot = await getDocs(logsQuery);
-  
-  const batch = writeBatch(db);
   snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
+    batch.update(doc.ref, { deleted: true });
   });
   
   await batch.commit();
@@ -89,7 +144,6 @@ export const getAnalytics = async () => {
 
 export function subscribeToHabits(userId: string, callback: (habits: Habit[]) => void) {
   const q = query(collection(db, 'habits'), where('userId', '==', userId));
-  
   return onSnapshot(q, (snapshot) => {
     const habits = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -102,7 +156,6 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
 export const saveUserSettings = async (userId: string, settings: UserSettings) => {
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
-    
     // First, check if the document exists
     const docSnap = await getDoc(userDocRef);
     
@@ -136,7 +189,6 @@ export const getUserData = async (userId: UserType): Promise<UserData | null> =>
   try {
     const userRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     const userDoc = await getDoc(userRef);
-    
     if (userDoc.exists()) {
       return userDoc.data() as UserData;
     }

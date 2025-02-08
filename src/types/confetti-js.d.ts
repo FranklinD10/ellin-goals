@@ -1,15 +1,13 @@
 declare module 'confetti-js' {
   interface ConfettiSettings {
-    target: string;
+    target?: string;
     max?: number;
     size?: number;
     animate?: boolean;
     props?: string[];
-    colors?: (string[][] | number[][]); // Allow both string and number arrays
+    colors?: number[][];
     clock?: number;
     rotate?: boolean;
-    width?: number;
-    height?: number;
     start_from_edge?: boolean;
     respawn?: boolean;
   }

@@ -1,11 +1,16 @@
 import { AppShell, Header, Group, Text, Container, Box, ActionIcon, useMantineColorScheme } from '@mantine/core';
 import { IconMoonStars, IconSun } from '@tabler/icons-react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import UserSwitcher from './UserSwitcher';
+import styled from 'styled-components';
+import useOnlineStatus from '../hooks/useOnlineStatus';
+import { useTheme } from '../contexts/ThemeContext';
+import { themes } from '../utils/theme-constants';
 
 function NavLink({ to, icon, label }: { to: string; icon: string; label: string }) {
   const location = useLocation();
   const isActive = location.pathname === to;
+  const { themeColor } = useTheme();
 
   return (
     <Link
@@ -15,7 +20,7 @@ function NavLink({ to, icon, label }: { to: string; icon: string; label: string 
         flexDirection: 'column',
         alignItems: 'center',
         textDecoration: 'none',
-        color: isActive ? '#FF4B4B' : '#666',
+        color: isActive ? themes[themeColor].color : '#666',
         flex: 1,
         padding: '8px 0'
       }}
@@ -26,8 +31,23 @@ function NavLink({ to, icon, label }: { to: string; icon: string; label: string 
   );
 }
 
+const ConfettiCanvas = styled.canvas`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+`;
+
 export default function Layout() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const isOnline = useOnlineStatus();
+
+  const handleToggleColorScheme = () => {
+    toggleColorScheme();
+  };
 
   return (
     <AppShell
@@ -38,10 +58,13 @@ export default function Layout() {
             <Group position="apart">
               <Text size="lg" weight={700}>ElLin Goals</Text>
               <Group>
+                {!isOnline && (
+                  <Text size="sm" color="yellow">Offline Mode</Text>
+                )}
                 <ActionIcon
                   variant="outline"
                   color={colorScheme === 'dark' ? 'yellow' : 'blue'}
-                  onClick={() => toggleColorScheme()}
+                  onClick={handleToggleColorScheme}
                   title="Toggle color scheme"
                 >
                   {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoonStars size={18} />}
@@ -53,18 +76,7 @@ export default function Layout() {
         </Header>
       }
     >
-      <canvas
-        id="confetti-canvas"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 100
-        }}
-      />
+      <ConfettiCanvas id="confetti-canvas" />
       <Container size="sm" px="xs" mt={60} mb={60} style={{ minHeight: 'calc(100vh - 120px)' }}>
         <Outlet />
       </Container>
@@ -88,6 +100,7 @@ export default function Layout() {
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/analytics" icon="📈" label="Stats" />
           <NavLink to="/manage" icon="🎯" label="Habits" />
+          <NavLink to="/settings" icon="⚙️" label="Settings" />
         </Group>
         <Text size="xs" color="dimmed" py={4}>
           Created by Franklin with 💖
