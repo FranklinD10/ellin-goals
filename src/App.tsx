@@ -1,4 +1,4 @@
-import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineTheme, MantineThemeOverride, LoadingOverlay } from '@mantine/core';
+import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineThemeOverride, LoadingOverlay, MantineTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -11,8 +11,9 @@ import Manage from './pages/Manage';
 import HealthCheck from './pages/HealthCheck';
 import { getUserSettings, saveUserSettings } from './lib/firestore';
 import { UserSettings } from './types';
+import ThemeManager from './components/ThemeManager';
 
-const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
+export const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
   colorScheme,
   colors: {
     primary: ['#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B'] as const,
@@ -64,42 +65,25 @@ const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
 
 export default function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-  const { userData, currentUser } = useUser();
-
-  useEffect(() => {
-    if (userData?.settings?.theme) {
-      setColorScheme(userData.settings.theme);
-    }
-  }, [userData]);
-
-  const toggleColorScheme = async (value?: ColorScheme) => {
-    const newTheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
-    setColorScheme(newTheme);
-    
-    const settings: UserSettings = {
-      theme: newTheme,
-      notifications: userData?.settings?.notifications ?? true
-    };
-    
-    await saveUserSettings(currentUser, settings);
-  };
 
   return (
-    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
+    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={setColorScheme}>
       <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
         <Notifications position="top-right" zIndex={2000} />
         <AuthProvider>
           <UserProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="manage" element={<Manage />} />
-                  <Route path="health" element={<HealthCheck />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
+            <ThemeManager onColorSchemeChange={setColorScheme}>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="analytics" element={<Analytics />} />
+                    <Route path="manage" element={<Manage />} />
+                    <Route path="health" element={<HealthCheck />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </ThemeManager>
           </UserProvider>
         </AuthProvider>
       </MantineProvider>
