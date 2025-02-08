@@ -1,4 +1,4 @@
-import { AppShell, Header, Group, Text, Container, Box, ActionIcon, useMantineColorScheme } from '@mantine/core';
+import { AppShell, Header, Group, Text, Container, Box, ActionIcon, useMantineColorScheme, useMantineTheme } from '@mantine/core';
 import { IconMoonStars, IconSun } from '@tabler/icons-react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import UserSwitcher from './UserSwitcher';
@@ -50,19 +50,20 @@ const AppContainer = styled(Container)`
   position: relative;
 `;
 
-const BottomNav = styled(Box)`
+const StyledBottomNav = styled(Box)`
   padding-bottom: env(safe-area-inset-bottom);
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: ${props => props.theme.colorScheme === 'dark' ? props.theme.colors.dark[7] : props.theme.white};
-  border-top: 1px solid ${props => props.theme.colorScheme === 'dark' ? props.theme.colors.dark[5] : props.theme.colors.gray[2]};
+  background-color: ${props => props.theme.colorScheme === 'dark' ? '#1A1B1E' : '#ffffff'};
+  border-top: 1px solid ${props => props.theme.colorScheme === 'dark' ? '#2C2E33' : '#e9ecef'};
   z-index: 100;
 `;
 
 export default function Layout() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const theme = useMantineTheme();
   const isOnline = useOnlineStatus();
 
   const handleToggleColorScheme = () => {
@@ -78,7 +79,7 @@ export default function Layout() {
           overflow: 'hidden',
           padding: 0,
           position: 'relative',
-          '-webkit-overflow-scrolling': 'touch',
+          WebkitOverflowScrolling: 'touch',
         }
       })}
       header={
@@ -116,7 +117,7 @@ export default function Layout() {
         <Outlet />
       </AppContainer>
 
-      <BottomNav>
+      <StyledBottomNav>
         <Group spacing={0} position="center" sx={{ width: '100%' }}>
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/analytics" icon="📈" label="Stats" />
@@ -126,7 +127,7 @@ export default function Layout() {
         <Text size="xs" color="dimmed" py={4}>
           Created by Franklin with 💖
         </Text>
-      </BottomNav>
+      </StyledBottomNav>
     </AppShell>
   );
 }
