@@ -53,6 +53,18 @@ export default function Layout() {
         </Header>
       }
     >
+      <canvas
+        id="confetti-canvas"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 100
+        }}
+      />
       <Container size="sm" px="xs" mt={60} mb={60} style={{ minHeight: 'calc(100vh - 120px)' }}>
         <Outlet />
       </Container>

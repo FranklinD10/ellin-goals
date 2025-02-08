@@ -6,10 +6,7 @@ export interface UserData {
   displayName: string;
   email: string;
   uid: string;
-  settings: {
-    theme: 'light' | 'dark';
-    notifications: boolean;
-  };
+  settings: UserSettings;  // Updated to use UserSettings type
   lastLogin: Date;
   createdAt: Date;
 }
@@ -51,5 +48,6 @@ export interface DailyCheck {
 
 export interface UserSettings {
   theme: 'light' | 'dark';
+  themeColor: 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
   notifications: boolean;
 }

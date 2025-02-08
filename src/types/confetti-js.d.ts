@@ -5,7 +5,7 @@ declare module 'confetti-js' {
     size?: number;
     animate?: boolean;
     props?: string[];
-    colors?: string[][];
+    colors?: (string[][] | number[][]); // Allow both string and number arrays
     clock?: number;
     rotate?: boolean;
     width?: number;

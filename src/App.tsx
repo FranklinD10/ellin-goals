@@ -13,10 +13,21 @@ import { getUserSettings, saveUserSettings } from './lib/firestore';
 import { UserSettings } from './types';
 import ThemeManager from './components/ThemeManager';
 
-export const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
+const themeColors: Record<string, [string, string, string, string, string, string, string, string, string, string]> = {
+  red: ['#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B'],
+  pink: ['#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4', '#FF69B4'],
+  purple: ['#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0', '#9C27B0'],
+  blue: ['#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3', '#2196F3'],
+  green: ['#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50'],
+  yellow: ['#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107', '#FFC107']
+};
+
+export type ThemeColorType = keyof typeof themeColors;
+
+export const getTheme = (colorScheme: ColorScheme, themeColor: keyof typeof themeColors = 'red'): MantineThemeOverride => ({
   colorScheme,
   colors: {
-    primary: ['#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B', '#FF4B4B'] as const,
+    primary: themeColors[themeColor],
     gray: colorScheme === 'dark' 
       ? ['#C1C2C5', '#A6A7AB', '#909296', '#5C5F66', '#373A40', '#2C2E33', '#25262B', '#1A1B1E', '#141517', '#101113']
       : ['#F8F9FA', '#F1F3F5', '#E9ECEF', '#DEE2E6', '#CED4DA', '#ADB5BD', '#868E96', '#495057', '#343A40', '#212529']
@@ -65,14 +76,15 @@ export const getTheme = (colorScheme: ColorScheme): MantineThemeOverride => ({
 
 export default function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
+  const [themeColor, setThemeColor] = useState<keyof typeof themeColors>('red');
 
   return (
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={(value?: ColorScheme) => setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'))}>
-      <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
+      <MantineProvider theme={getTheme(colorScheme, themeColor)} withGlobalStyles withNormalizeCSS>
         <Notifications position="top-right" zIndex={2000} />
         <AuthProvider>
           <UserProvider>
-            <ThemeManager onColorSchemeChange={setColorScheme}>
+            <ThemeManager onColorSchemeChange={setColorScheme} onThemeColorChange={setThemeColor}>
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Layout />}>

@@ -100,7 +100,30 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
 }
 
 export const saveUserSettings = async (userId: string, settings: UserSettings) => {
-  await setDoc(doc(db, 'user_settings', userId), settings, { merge: true });
+  try {
+    const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
+    
+    // First, check if the document exists
+    const docSnap = await getDoc(userDocRef);
+    
+    if (docSnap.exists()) {
+      // Update only the settings field
+      await setDoc(userDocRef, { settings }, { merge: true });
+    } else {
+      // Create a new user document with default values
+      await setDoc(userDocRef, {
+        displayName: userId,
+        email: `${userId.toLowerCase()}@example.com`,
+        uid: `${userId.toLowerCase()}-default`,
+        settings,
+        createdAt: Timestamp.now(),
+        lastLogin: Timestamp.now()
+      });
+    }
+  } catch (error) {
+    console.error('Error saving user settings:', error);
+    throw error;
+  }
 };
 
 export const getUserSettings = async (userId: string) => {
