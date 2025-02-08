@@ -32,10 +32,11 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
 
 export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
   try {
+    // Try compound query first
     const q = query(
       collection(db, 'habits'),
       where('user_id', '==', userId),
-      where('deleted', '==', false)  // Explicitly check for non-deleted habits
+      where('deleted', '==', false)
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
@@ -44,24 +45,21 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
       created_at: doc.data().created_at || Timestamp.now()
     })) as Habit[];
   } catch (error: any) {
-    // Check for missing index error
-    if (error.code === 'failed-precondition' || error.message?.includes('index')) {
-      console.error('Missing Firestore index:', error);
-      // Fallback to simple query without deleted filter
-      const fallbackQuery = query(
-        collection(db, 'habits'),
-        where('user_id', '==', userId)
-      );
-      const snapshot = await getDocs(fallbackQuery);
-      return snapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          created_at: doc.data().created_at || Timestamp.now()
-        }))
-        .filter(habit => !habit.deleted) as Habit[]; // Filter in memory as fallback
-    }
-    throw error;
+    // Fallback to simple query
+    console.error('Using fallback query:', error);
+    const fallbackQuery = query(
+      collection(db, 'habits'),
+      where('user_id', '==', userId)
+    );
+    const snapshot = await getDocs(fallbackQuery);
+    return snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        created_at: doc.data().created_at || Timestamp.now(),
+        deleted: doc.data().deleted || false
+      }))
+      .filter(habit => !habit.deleted) as Habit[];
   }
 };
 

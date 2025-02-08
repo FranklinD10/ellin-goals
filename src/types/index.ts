@@ -24,6 +24,8 @@ export interface Habit {
   category: string;
   user_id: string;
   created_at: Timestamp;
+  deleted?: boolean;
+  deletedAt?: Timestamp;
 }
 
 export interface HabitLog {

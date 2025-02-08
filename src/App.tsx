@@ -50,7 +50,7 @@ const getThemeColors = (color: string): [string, string, string, string, string,
   ];
 };
 
-// Create router with future flags
+// Create router without future flags
 const router = createBrowserRouter([
   {
     path: "/",
@@ -63,12 +63,7 @@ const router = createBrowserRouter([
       { path: "settings", element: <Settings /> }
     ],
   }
-], {
-  future: {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true
-  }
-});
+]);
 
 function AppContent() {
   const { colorScheme, themeColor, toggleColorScheme } = useTheme();

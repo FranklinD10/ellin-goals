@@ -7,16 +7,64 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#FF4B4B" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#262730" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1A1B1E" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="ElLin Goals - Habit tracking for El and Lin" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="apple-touch-startup-image" href="/splash.png" />
     <link rel="mask-icon" href="/favicon.svg" color="#FF4B4B" />
     <title>ElLin Goals</title>
-    <script type="module" crossorigin src="/assets/index-b48fe839.js"></script>
+    <style>
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .dark #initial-loader {
+        background: #1A1B1E;
+        color: #fff;
+      }
+      .loader-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid #eee;
+        border-radius: 50%;
+        border-top-color: #FF4B4B;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .loader-text {
+        color: #666;
+        font-size: 16px;
+      }
+      .dark .loader-text {
+        color: #909296;
+      }
+    </style>
+    <script>
+      // Check system dark mode preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-bfa605ac.js"></script>
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
+    <div id="initial-loader">
+      <div class="loader-spinner"></div>
+      <div class="loader-text">Loading ElLin Goals...</div>
+    </div>
     <div id="root"></div>
     
   </body>

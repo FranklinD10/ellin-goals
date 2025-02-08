@@ -41,6 +41,26 @@ const ConfettiCanvas = styled.canvas`
   z-index: 100;
 `;
 
+const AppContainer = styled(Container)`
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  height: 100%;
+  position: relative;
+`;
+
+const BottomNav = styled(Box)`
+  padding-bottom: env(safe-area-inset-bottom);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: ${props => props.theme.colorScheme === 'dark' ? props.theme.colors.dark[7] : props.theme.white};
+  border-top: 1px solid ${props => props.theme.colorScheme === 'dark' ? props.theme.colors.dark[5] : props.theme.colors.gray[2]};
+  z-index: 100;
+`;
+
 export default function Layout() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isOnline = useOnlineStatus();
@@ -52,6 +72,15 @@ export default function Layout() {
   return (
     <AppShell
       padding={0}
+      styles={(theme) => ({
+        main: {
+          height: '100vh',
+          overflow: 'hidden',
+          padding: 0,
+          position: 'relative',
+          '-webkit-overflow-scrolling': 'touch',
+        }
+      })}
       header={
         <Header height={60} p="md" sx={{ position: 'fixed', top: 0, width: '100%' }}>
           <Container size="sm" px="xs">
@@ -77,25 +106,17 @@ export default function Layout() {
       }
     >
       <ConfettiCanvas id="confetti-canvas" />
-      <Container size="sm" px="xs" mt={60} mb={60} style={{ minHeight: 'calc(100vh - 120px)' }}>
-        <Outlet />
-      </Container>
-
-      <Box
-        sx={(theme) => ({
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
-          borderTop: `1px solid ${
-            theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2]
-          }`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        })}
+      <AppContainer 
+        size="sm" 
+        px="xs" 
+        mt={60} 
+        mb={60}
+        sx={{ minHeight: 'calc(100vh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom))' }}
       >
+        <Outlet />
+      </AppContainer>
+
+      <BottomNav>
         <Group spacing={0} position="center" sx={{ width: '100%' }}>
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/analytics" icon="📈" label="Stats" />
@@ -105,7 +126,7 @@ export default function Layout() {
         <Text size="xs" color="dimmed" py={4}>
           Created by Franklin with 💖
         </Text>
-      </Box>
+      </BottomNav>
     </AppShell>
   );
 }
