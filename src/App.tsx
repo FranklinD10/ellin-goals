@@ -73,6 +73,16 @@ const router = createBrowserRouter([
 function AppContent() {
   const { colorScheme, themeColor, toggleColorScheme } = useTheme();
 
+  useEffect(() => {
+    // Remove initial loader immediately when React app starts
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.transition = 'opacity 0.3s ease-out';
+      setTimeout(() => loader.remove(), 300);
+    }
+  }, []);
+
   const theme = useMemo(() => ({
     colorScheme,
     colors: {
@@ -85,6 +95,15 @@ function AppContent() {
     },
     primaryColor: 'primary',
     components: {
+      LoadingOverlay: {
+        defaultProps: {
+          loaderProps: {
+            color: themes[themeColor].color,
+            size: 'xl',
+            variant: 'oval'
+          }
+        }
+      },
       Card: {
         defaultProps: {
           p: 'md',

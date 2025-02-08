@@ -63,9 +63,9 @@
       .loader-spinner {
         width: 50px;
         height: 50px;
-        border: 3px solid #eee;
+        border: 3px solid var(--loader-border-color, #eee);
         border-radius: 50%;
-        border-top-color: #FF4B4B;
+        border-top-color: var(--theme-color, #FF4B4B);
         animation: spin 1s linear infinite;
         margin-bottom: 20px;
       }
@@ -84,6 +84,13 @@
       // Check system dark mode preference
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.documentElement.classList.add('dark');
+      }
+      // Initialize theme colors
+      const root = document.documentElement;
+      root.style.setProperty('--theme-color', '#FF4B4B');
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+        root.style.setProperty('--loader-border-color', '#2C2E33');
       }
     </script>
   </head>

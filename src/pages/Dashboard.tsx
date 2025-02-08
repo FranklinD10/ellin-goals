@@ -6,6 +6,7 @@ import { Habit } from '../types';
 import StatsCard from '../components/StatsCard';
 import CategoryBadge from '../components/CategoryBadge';
 import { playCompletionSound, animateCompletion } from '../utils/effects';
+import { ThemedLoader } from '../components/ThemedLoader';
 
 export default function Dashboard() {
   const { currentUser } = useUser();
@@ -106,6 +107,10 @@ export default function Dashboard() {
       // Optionally show an error notification here
     }
   };
+
+  if (loading) {
+    return <ThemedLoader text="Loading your habits..." />;
+  }
 
   if (error) {
     return <Alert color="red" mt="md">{error}</Alert>;
