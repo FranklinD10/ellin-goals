@@ -24,6 +24,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevent rubber-band scrolling on iOS */
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
 input, textarea {
   font-size: 16px !important; /* Prevents iOS zoom on focus */
 }
@@ -34,4 +49,20 @@ input, textarea {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Add iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .chart-container {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  .scrollable-content {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    height: 100%;
+  }
 }

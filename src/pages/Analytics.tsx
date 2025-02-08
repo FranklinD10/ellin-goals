@@ -1,12 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Stack, Text, Grid, Card, Center } from '@mantine/core';
+import { Stack, Text, Grid, Card, Center, Title, Paper } from '@mantine/core';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-  BarChart, Bar, Tooltip, PieChart, Pie, Cell 
+  BarChart, Bar, Tooltip, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { useUser } from '../contexts/UserContext';
 import { getUserHabits, getHabitLogs } from '../lib/firestore';
 import { Habit, HabitLog } from '../types';
+import styled from 'styled-components';
+
+const ChartContainer = styled.div`
+  width: 100%;
+  min-height: 300px;
+  margin-bottom: 16px;
+  overflow: visible;
+`;
+
+const ScrollableStack = styled(Stack)`
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+`;
 
 export default function Analytics() {
   const { currentUser } = useUser();
@@ -95,9 +109,44 @@ export default function Analytics() {
   const categoryData = processCategoryData();
 
   return (
-    <Stack spacing="xl" p="md">
-      <Text size="xl">Analytics</Text>
-      
+    <ScrollableStack spacing="xl">
+      <Title order={2}>Analytics</Title>
+
+      <Paper p="md" withBorder>
+        <Stack spacing="md">
+          <Text weight={500}>Habits by Category</Text>
+          <ChartContainer>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                >
+                  {categoryData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend
+                  layout="vertical"
+                  align="end"
+                  verticalAlign="middle"
+                  wrapperStyle={{
+                    paddingLeft: '20px',
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                  }}
+                />
+              </PieChart>
+              <Tooltip />
+            </ResponsiveContainer>
+          </ChartContainer>
+        </Stack>
+      </Paper>
+
       <Grid>
         <Grid.Col span={12}>
           <Card>
@@ -125,36 +174,7 @@ export default function Analytics() {
             )}
           </Card>
         </Grid.Col>
-
-        <Grid.Col span={12}>
-          <Card>
-            <Text weight={500} mb="md">Habits by Category</Text>
-            {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    label
-                  >
-                    {categoryData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <Center style={{ height: 300 }}>
-                <Text color="dimmed">Add habits with different categories to see distribution</Text>
-              </Center>
-            )}
-          </Card>
-        </Grid.Col>
       </Grid>
-    </Stack>
+    </ScrollableStack>
   );
 }

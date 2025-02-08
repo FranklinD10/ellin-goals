@@ -42,8 +42,8 @@ const ConfettiCanvas = styled.canvas`
 `;
 
 const AppContainer = styled(Container)`
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: calc(env(safe-area-inset-top) + 60px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px); /* Increased bottom padding */
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
   height: 100%;
@@ -111,10 +111,11 @@ export default function Layout() {
       <ConfettiCanvas id="confetti-canvas" />
       <AppContainer 
         size="sm" 
-        px="xs" 
-        mt={60} 
-        mb={60}
-        sx={{ minHeight: 'calc(100vh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom))' }}
+        px="xs"
+        sx={{ 
+          minHeight: 'calc(100vh - env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(60px + env(safe-area-inset-bottom))'
+        }}
       >
         <Outlet />
       </AppContainer>
