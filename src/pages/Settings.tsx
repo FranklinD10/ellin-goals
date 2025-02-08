@@ -43,7 +43,6 @@ export default function Settings() {
   return (
     <Container size="sm" py="xl">
       <Title order={2} mb="xl">Settings</Title>
-
       <Stack spacing="lg">
         <Paper p="md" withBorder>
           <Stack spacing="md">

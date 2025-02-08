@@ -18,6 +18,7 @@
   targetPort = 5173                   # Vite's default port
   port = 8888                         # Netlify dev server port
   publish = "dist"
+  functions = "netlify/functions"
 
 # Enable better SPA support
 [[headers]]

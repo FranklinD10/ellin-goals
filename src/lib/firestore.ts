@@ -1,12 +1,45 @@
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp, setDoc, writeBatch, onSnapshot, getDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, // Add this import
+  deleteDoc, 
+  doc, 
+  Timestamp, 
+  setDoc, 
+  writeBatch, 
+  onSnapshot, 
+  getDoc 
+} from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
 import { startOfDay } from 'date-fns';
 import axiosRetry from 'axios-retry';
 import axios from 'axios';
+import { IndexLogger } from '../utils/indexLogger';
+import { IndexManager } from '../utils/indexManager';
+import { ClientIndexManager } from '../utils/clientIndexManager';
 
 // Use axiosRetry instead of destructuring retry
 axiosRetry(axios, { retries: 3 });
+
+// Add this function to handle index creation
+async function handleIndexError(error: any, collection: string, fields: string[]) {
+  if (error.code === 'failed-precondition' && error.message?.includes('index')) {
+    try {
+      await axios.post('/api/createIndex', { collection, fields });
+      // Wait a bit for the index to be created
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return true;
+    } catch (indexError) {
+      console.error('Failed to create index:', indexError);
+      return false;
+    }
+  }
+  return false;
+}
 
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id) throw new Error('user_id is undefined');
@@ -32,50 +65,90 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
 
 export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
   try {
-    // Try compound query first
+    // Now orderBy will be recognized
     const q = query(
       collection(db, 'habits'),
       where('user_id', '==', userId),
-      where('deleted', '==', false)
+      where('deleted', '==', false),
+      orderBy('created_at', 'desc')
     );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      created_at: doc.data().created_at || Timestamp.now()
-    })) as Habit[];
-  } catch (error: any) {
-    // Fallback to simple query
-    console.error('Using fallback query:', error);
-    const fallbackQuery = query(
-      collection(db, 'habits'),
-      where('user_id', '==', userId)
-    );
-    const snapshot = await getDocs(fallbackQuery);
-    return snapshot.docs
-      .map(doc => ({
+
+    try {
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        created_at: doc.data().created_at || Timestamp.now(),
-        deleted: doc.data().deleted || false
-      }))
-      .filter(habit => !habit.deleted) as Habit[];
+        created_at: doc.data().created_at || Timestamp.now()
+      })) as Habit[]; 
+    } catch (error: any) {
+      // Check for missing index error
+      if (error.code === 'failed-precondition' && error.message?.includes('index')) {
+        IndexLogger.detected('habits', ['user_id', 'deleted', 'created_at']);
+        IndexLogger.initiating('habits');
+        
+        // Use fallback query while index is being created
+        IndexLogger.fallback('habits');
+        const fallbackQuery = query(
+          collection(db, 'habits'),
+          where('user_id', '==', userId)
+        );
+        
+        const snapshot = await getDocs(fallbackQuery);
+        const habits = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            created_at: doc.data().created_at || Timestamp.now(),
+            deleted: doc.data().deleted || false
+          }))
+          .filter(habit => !habit.deleted) as Habit[];
+
+        // Schedule a check for index creation
+        setTimeout(async () => {
+          try {
+            await getDocs(q);
+            IndexLogger.success('habits');
+          } catch (e) {
+            IndexLogger.error('habits', e);
+          }
+        }, 5000);
+
+        return habits;
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error fetching habits:', error);
+    throw error;
   }
 };
 
 export const getHabitLogs = async (habitId: string, startDate: Date) => {
+  const primaryConstraints = [
+    where('habit_id', '==', habitId),
+    where('date', '>=', Timestamp.fromDate(startDate)),
+    where('deleted', '!=', true),
+    orderBy('date', 'desc')
+  ];
+
+  const fallbackConstraints = [
+    where('habit_id', '==', habitId)
+  ];
+
   try {
-    const q = query(
-      collection(db, 'habit_logs'),
-      where('habit_id', '==', habitId),
-      where('date', '>=', Timestamp.fromDate(startDate)),
-      where('deleted', '!=', true)
+    return await ClientIndexManager.executeQueryWithFallback<HabitLog>(
+      'habit_logs',
+      primaryConstraints,
+      fallbackConstraints,
+      (log) => {
+        if (!log.date) return false;
+        const logDate = (log.date as Timestamp).toDate();
+        const isDeleted = log.deleted === true;
+        return logDate >= startDate && !isDeleted;
+      }
     );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as HabitLog));
   } catch (error) {
-    console.warn(`Error getting logs for habit ${habitId}:`, error);
-    return []; // Return empty array instead of throwing
+    return [];
   }
 };
 
