@@ -4,7 +4,8 @@ import {
   getDocs, 
   query, 
   where, 
-  orderBy, // Add this import
+  orderBy,
+  limit,
   deleteDoc, 
   doc, 
   Timestamp, 
@@ -15,11 +16,9 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
-import { startOfDay } from 'date-fns';
+import { startOfDay, endOfDay } from 'date-fns';
 import axiosRetry from 'axios-retry';
 import axios from 'axios';
-import { IndexLogger } from '../utils/indexLogger';
-import { IndexManager } from '../utils/indexManager';
 import { ClientIndexManager } from '../utils/clientIndexManager';
 
 // Use axiosRetry instead of destructuring retry
@@ -64,62 +63,54 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
 };
 
 export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
+  const q = query(
+    collection(db, 'habits'),
+    where('user_id', '==', userId),
+    where('deleted', '==', false),
+    orderBy('created_at', 'desc'),
+    // Add limit to prevent loading too many habits at once
+    limit(10)
+  );
+
   try {
-    // Now orderBy will be recognized
-    const q = query(
-      collection(db, 'habits'),
-      where('user_id', '==', userId),
-      where('deleted', '==', false),
-      orderBy('created_at', 'desc')
-    );
-
-    try {
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        created_at: doc.data().created_at || Timestamp.now()
-      })) as Habit[]; 
-    } catch (error: any) {
-      // Check for missing index error
-      if (error.code === 'failed-precondition' && error.message?.includes('index')) {
-        IndexLogger.detected('habits', ['user_id', 'deleted', 'created_at']);
-        IndexLogger.initiating('habits');
-        
-        // Use fallback query while index is being created
-        IndexLogger.fallback('habits');
-        const fallbackQuery = query(
-          collection(db, 'habits'),
-          where('user_id', '==', userId)
-        );
-        
-        const snapshot = await getDocs(fallbackQuery);
-        const habits = snapshot.docs
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            created_at: doc.data().created_at || Timestamp.now(),
-            deleted: doc.data().deleted || false
-          }))
-          .filter(habit => !habit.deleted) as Habit[];
-
-        // Schedule a check for index creation
-        setTimeout(async () => {
-          try {
-            await getDocs(q);
-            IndexLogger.success('habits');
-          } catch (e) {
-            IndexLogger.error('habits', e);
-          }
-        }, 5000);
-
-        return habits;
-      }
-      throw error;
-    }
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      created_at: doc.data().created_at || Timestamp.now()
+    })) as Habit[];
   } catch (error) {
     console.error('Error fetching habits:', error);
     throw error;
+  }
+};
+
+export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
+  const todayStart = startOfDay(new Date());
+  const todayEnd = endOfDay(new Date());
+
+  console.debug('Getting logs for range:', { todayStart, todayEnd });
+
+  const q = query(
+    collection(db, 'habit_logs'),
+    where('user_id', '==', userId),
+    where('date', '>=', Timestamp.fromDate(todayStart)),
+    where('date', '<=', Timestamp.fromDate(todayEnd)),
+    where('deleted', '!=', true)
+  );
+
+  try {
+    const snapshot = await getDocs(q);
+    const logs = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    })) as HabitLog[];
+
+    console.debug('Retrieved logs:', logs);
+    return logs;
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+    return [];
   }
 };
 
@@ -158,28 +149,26 @@ export const logHabitCompletion = async (
   date: Date, 
   completed: boolean
 ) => {
-  const retries = 3;
-  const attempt = async (retryCount: number) => {
-    try {
-      const startDay = startOfDay(date);
-      const dateStr = startDay.toISOString().split('T')[0];
-      const docId = `${habitId}_${dateStr}_${userId}`;
-      await setDoc(doc(db, 'habit_logs', docId), {
-        habit_id: habitId,
-        userId,
-        date: Timestamp.fromDate(startDay),
-        completed,
-        updatedAt: Timestamp.now()
-      }, { merge: true });
-    } catch (error) {
-      if (retryCount < retries) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return attempt(retryCount + 1);
-      }
-      throw error;
-    }
+  const todayStart = startOfDay(date);
+  const docId = `${habitId}_${todayStart.toISOString().split('T')[0]}_${userId}`;
+  
+  const logData = {
+    habit_id: habitId,
+    user_id: userId,
+    date: Timestamp.fromDate(todayStart),
+    completed,
+    updatedAt: Timestamp.now()
   };
-  return attempt(0);
+
+  console.debug('Saving habit log:', { docId, logData });
+  
+  try {
+    await setDoc(doc(db, 'habit_logs', docId), logData, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error logging habit:', error);
+    throw error;
+  }
 };
 
 export const deleteHabit = async (habitId: string) => {

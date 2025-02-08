@@ -65,23 +65,31 @@ const router = createBrowserRouter([
   }
 ], {
   future: {
-    v7_startTransition: true,
     v7_relativeSplatPath: true
   }
 });
 
 function AppContent() {
   const { colorScheme, themeColor, toggleColorScheme } = useTheme();
+  const [isInitialLoaderVisible, setIsInitialLoaderVisible] = useState(true);
 
   useEffect(() => {
-    // Remove initial loader immediately when React app starts
+    // Handle initial loader
     const loader = document.getElementById('initial-loader');
-    if (loader) {
-      loader.style.opacity = '0';
-      loader.style.transition = 'opacity 0.3s ease-out';
-      setTimeout(() => loader.remove(), 300);
+    if (loader && isInitialLoaderVisible) {
+      // Add fade-out class to trigger transition
+      loader.classList.add('fade-out');
+      
+      // Remove loader after transition
+      setTimeout(() => {
+        loader.remove();
+        setIsInitialLoaderVisible(false);
+      }, 300);
     }
-  }, []);
+
+    // Update theme color CSS variable
+    document.documentElement.style.setProperty('--theme-color', themes[themeColor].color);
+  }, [themeColor, isInitialLoaderVisible]);
 
   const theme = useMemo(() => ({
     colorScheme,
@@ -149,8 +157,12 @@ function AppContent() {
         withGlobalStyles 
         withNormalizeCSS
       >
-        <Notifications position="top-right" zIndex={2000} />
-        <RouterProvider router={router} />
+        {!isInitialLoaderVisible && (
+          <>
+            <Notifications position="top-right" zIndex={2000} />
+            <RouterProvider router={router} />
+          </>
+        )}
       </MantineProvider>
     </ColorSchemeProvider>
   );

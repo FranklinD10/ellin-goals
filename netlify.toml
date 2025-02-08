@@ -1,7 +1,6 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"     # Add if you're using Netlify Functions
 
 [[redirects]]
   from = "/*"
@@ -10,15 +9,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  NPM_FLAGS = "--legacy-peer-deps"    # Add if you have dependency conflicts
-
-[dev]
-  framework = "#custom"
-  command = "npm run dev"             # Local development command
-  targetPort = 5173                   # Vite's default port
-  port = 8888                         # Netlify dev server port
-  publish = "dist"
-  functions = "netlify/functions"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 # Enable better SPA support
 [[headers]]
@@ -28,7 +19,15 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    Content-Security-Policy = '''
+      default-src 'self';
+      connect-src 'self' https://*.googleapis.com https://*.google.com https://*.firebaseio.com https://*.firestore.googleapis.com https://firestore.googleapis.com https://*.cloudfunctions.net https://identitytoolkit.googleapis.com https://www.google-analytics.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google.com https://*.gstatic.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      frame-src 'self' https://*.firebaseapp.com https://*.google.com;
+    '''
 
 # Cache control for static assets
 [[headers]]

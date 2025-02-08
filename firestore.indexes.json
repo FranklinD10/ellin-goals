@@ -5,11 +5,15 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "habit_id",
+          "fieldPath": "userId",
           "order": "ASCENDING"
         },
         {
           "fieldPath": "date",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deleted",
           "order": "ASCENDING"
         }
       ]

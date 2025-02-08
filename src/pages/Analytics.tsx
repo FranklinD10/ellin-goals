@@ -132,7 +132,7 @@ export default function Analytics() {
                 </Pie>
                 <Legend
                   layout="vertical"
-                  align="end"
+                  align="right"
                   verticalAlign="middle"
                   wrapperStyle={{
                     paddingLeft: '20px',
@@ -140,8 +140,8 @@ export default function Analytics() {
                     overflowY: 'auto'
                   }}
                 />
+                <Tooltip />
               </PieChart>
-              <Tooltip />
             </ResponsiveContainer>
           </ChartContainer>
         </Stack>

@@ -31,9 +31,11 @@ export interface Habit {
 export interface HabitLog {
   id: string;
   habit_id: string;
+  user_id: UserType;
   date: Timestamp;
   completed: boolean;
-  userId: string;
+  updatedAt: Timestamp;
+  deleted?: boolean;
 }
 
 export interface UserStats {

@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, Text, Checkbox, Group, Stack, Skeleton, Alert, Box } from '@mantine/core';
 import { useUser } from '../contexts/UserContext';
-import { getUserHabits, logHabitCompletion, getHabitLogs } from '../lib/firestore';
+import { getUserHabits, logHabitCompletion, getHabitLogs, getTodayLogs } from '../lib/firestore';
 import { Habit } from '../types';
 import StatsCard from '../components/StatsCard';
 import CategoryBadge from '../components/CategoryBadge';
 import { playCompletionSound, animateCompletion } from '../utils/effects';
-import { ThemedLoader } from '../components/ThemedLoader';
 
 export default function Dashboard() {
   const { currentUser } = useUser();
@@ -16,71 +15,47 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    let mounted = true;
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const loadHabitsAndLogs = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const userHabits = await getUserHabits(currentUser);
-        
-        if (!mounted) return;
-        
-        setHabits(userHabits);
+      // Get habits and today's logs in parallel
+      const [userHabits, todayLogs] = await Promise.all([
+        getUserHabits(currentUser),
+        getTodayLogs(currentUser)
+      ]);
 
-        // Load today's logs
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const completed = new Set<string>();
-        for (const habit of userHabits) {
-          const logs = await getHabitLogs(habit.id, today);
-          if (logs.some(log => log.completed)) {
-            completed.add(habit.id);
-          }
-        }
-        setCompletedHabits(completed);
+      console.debug('Loaded data:', { userHabits, todayLogs });
 
-        // Check if we have habits before trying to get logs
-        if (userHabits.length > 0) {
-          try {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            
-            const logsPromises = userHabits.map(habit => 
-              getHabitLogs(habit.id, sevenDaysAgo)
-            );
-            const allLogs = await Promise.all(logsPromises);
-            const totalLogs = allLogs.flat().length;
-            const possibleLogs = userHabits.length * 7;
-            
-            setCompletionRate(possibleLogs ? (totalLogs / possibleLogs) * 100 : 0);
-          } catch (logError) {
-            console.warn('Error loading logs:', logError);
-            // Don't show this error to user, just set completion rate to 0
-            setCompletionRate(0);
-          }
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        if (mounted) {
-          setError('Failed to load habits. Please try again.');
-          setHabits([]);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+      setHabits(userHabits);
+      
+      // Map completed habits
+      const completedHabitIds = new Set(
+        todayLogs
+          .filter(log => log.completed)
+          .map(log => log.habit_id)
+      );
+      
+      setCompletedHabits(completedHabitIds);
+
+      // Calculate completion rate
+      if (userHabits.length > 0) {
+        const completionRate = (completedHabitIds.size / userHabits.length) * 100;
+        setCompletionRate(completionRate);
       }
-    };
-
-    loadHabitsAndLogs();
-
-    return () => {
-      mounted = false;
-    };
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError('Failed to load habits');
+    } finally {
+      setLoading(false);
+    }
   }, [currentUser]);
+
+  // Reload data when component mounts or user changes
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleToggle = async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const isCompleted = event.target.checked;
@@ -89,6 +64,7 @@ export default function Dashboard() {
     try {
       await logHabitCompletion(habitId, currentUser, new Date(), isCompleted);
       
+      // Update local state immediately
       setCompletedHabits(prev => {
         const next = new Set(prev);
         if (isCompleted) {
@@ -102,14 +78,37 @@ export default function Dashboard() {
         }
         return next;
       });
+
+      // Recalculate completion rate
+      setCompletionRate(prev => {
+        const totalHabits = habits.length;
+        if (totalHabits === 0) return 0;
+        const completedCount = isCompleted ? prev + 1 : prev - 1;
+        return (completedCount / totalHabits) * 100;
+      });
+
+      // Reload data to ensure consistency
+      await loadData();
     } catch (error) {
-      console.error('Error logging habit completion:', error);
-      // Optionally show an error notification here
+      console.error('Error toggling habit:', error);
+      // Revert local state on error
+      await loadData();
     }
   };
 
   if (loading) {
-    return <ThemedLoader text="Loading your habits..." />;
+    return (
+      <Stack spacing="md" p="md">
+        <Skeleton height={30} width="40%" mb="xl" />
+        <Group grow mb="md">
+          <Skeleton height={90} radius="md" />
+          <Skeleton height={90} radius="md" />
+        </Group>
+        {Array(3).fill(0).map((_, i) => (
+          <Skeleton key={i} height={80} radius="md" mb="sm" />
+        ))}
+      </Stack>
+    );
   }
 
   if (error) {

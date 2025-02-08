@@ -1,42 +1,51 @@
-import { collection, query, QueryConstraint, getDocs, FirebaseError } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  QueryConstraint, 
+  getDocs, 
+  FirestoreError // Changed from FirebaseError
+} from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import axios from 'axios';
+import axios from 'axios'; // Add axios import
+
+interface CreateIndexResponse {
+  success: boolean;
+  message?: string;
+}
 
 export class ClientIndexManager {
-  private static readonly RETRY_DELAY = 2000;
-  private static readonly MAX_RETRIES = 3;
-
   static async executeQueryWithFallback<T>(
-    collectionName: string,
+    collectionPath: string,
     primaryConstraints: QueryConstraint[],
     fallbackConstraints: QueryConstraint[],
     filterFn?: (doc: T) => boolean
   ): Promise<T[]> {
     try {
-      const primaryQuery = query(collection(db, collectionName), ...primaryConstraints);
-      const snapshot = await getDocs(primaryQuery);
+      const q = query(collection(db, collectionPath), ...primaryConstraints);
+      const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as T[];
     } catch (error) {
-      if (this.isIndexError(error as FirebaseError)) {
-        const basicQuery = query(
-          collection(db, collectionName),
-          ...fallbackConstraints
-        );
-        
-        const snapshot = await getDocs(basicQuery);
-        let results = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as T[];
-        
-        if (filterFn) {
-          results = results.filter(filterFn);
-        }
+      if (this.isIndexError(error as FirestoreError)) {
+        try {
+          const fallbackQ = query(collection(db, collectionPath), ...fallbackConstraints);
+          const snapshot = await getDocs(fallbackQ);
+          let results = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as T[];
+          
+          if (filterFn) {
+            results = results.filter(filterFn);
+          }
 
-        return results;
+          return results;
+        } catch (fallbackError) {
+          console.error('Fallback query failed:', fallbackError);
+          return [];
+        }
       }
-      return []; // Return empty array on error
+      return [];
     }
   }
 
-  private static isIndexError(error: FirebaseError): boolean {
+  private static isIndexError(error: FirestoreError): boolean {
     return error.code === 'failed-precondition' && 
            error.message?.includes('requires an index');
   }
@@ -50,14 +59,14 @@ export class ClientIndexManager {
     try {
       const fields = this.parseIndexFieldsFromError(errorMessage);
       
-      // Call Netlify function instead of Firebase function
-      const response = await axios.post('/.netlify/functions/create-firestore-index', {
-        collectionId,
-        fields
-      });
+      const response = await axios.post<CreateIndexResponse>(
+        '/.netlify/functions/create-firestore-index',
+        { collectionId, fields }
+      );
       
-      return true;
+      return response.data.success;
     } catch (error) {
+      console.error('Failed to create index:', error);
       return false;
     }
   }
