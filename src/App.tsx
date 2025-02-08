@@ -67,7 +67,7 @@ export default function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
 
   return (
-    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={setColorScheme}>
+    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={(value?: ColorScheme) => setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'))}>
       <MantineProvider theme={getTheme(colorScheme)} withGlobalStyles withNormalizeCSS>
         <Notifications position="top-right" zIndex={2000} />
         <AuthProvider>

@@ -40,20 +40,3 @@ export default function ThemeManager({ children, onColorSchemeChange }: ThemeMan
 
   return <>{children}</>;
 }
-
-useEffect(() => {
-  const newToggle = async (value?: ColorScheme) => {
-    const currentTheme = userData?.settings?.theme || 'light';
-    const newTheme = value || (currentTheme === 'dark' ? 'light' : 'dark');
-    
-    const settings: UserSettings = {
-      theme: newTheme,
-      notifications: userData?.settings?.notifications ?? true
-    };
-    
-    await saveUserSettings(currentUser, settings);
-    onColorSchemeChange(newTheme);
-  };
-
-  toggleColorSchemeRef.current = newToggle;
-}, [userData, currentUser, onColorSchemeChange]);

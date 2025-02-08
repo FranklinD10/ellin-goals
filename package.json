@@ -17,15 +17,16 @@
     "@emotion/react": "^11.11.0",
     "@mantine/core": "^6.0.11",
     "@mantine/hooks": "^6.0.11",
+    "@mantine/notifications": "^6.0.11",
     "@tabler/icons-react": "^3.30.0",
+    "confetti-js": "^0.0.18",
     "firebase": "^9.22.0",
     "firebase-admin": "^11.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.2",
     "recharts": "^2.6.2",
-    "styled-components": "^6.0.0-rc.1",
-    "@mantine/notifications": "^6.0.11"
+    "styled-components": "^6.0.0-rc.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

@@ -1,3 +1,5 @@
+import ConfettiGenerator from 'confetti-js';
+
 export const playCompletionSound = () => {
   const audio = new Audio('https://www.soundjay.com/button/sounds/button-3.mp3');
   audio.play().catch(err => console.warn('Audio playback failed:', err));
