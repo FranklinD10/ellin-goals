@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, TextInput, Button, Select, Stack, Group, Card, ActionIcon, Text, useMantineColorScheme } from '@mantine/core';
+import { Container, TextInput, Button, Select, Stack, Group, Card, ActionIcon, Text, useMantineColorScheme, Loader } from '@mantine/core';
 import { IconMoonStars, IconSun, IconPlus, IconTrash, IconCheck } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useUser } from '../contexts/UserContext';
@@ -7,6 +7,7 @@ import { addHabit, deleteHabit, getUserHabits } from '../lib/firestore';
 import { Habit } from '../types';
 import CategoryBadge from '../components/CategoryBadge';
 import { useTheme } from '../contexts/ThemeContext';
+import { useHabits } from '../hooks/useHabits';
 
 const CATEGORIES = [
   { value: 'health', label: '🏃 Health & Fitness' },
@@ -22,24 +23,16 @@ const CATEGORIES = [
 
 function HabitsList() {
   const { currentUser } = useUser();
-  const [habits, setHabits] = useState<Habit[]>([]);
-
-  useEffect(() => {
-    const loadHabits = async () => {
-      const userHabits = await getUserHabits(currentUser);
-      setHabits(userHabits);
-    };
-    loadHabits();
-  }, [currentUser]);
+  const { habits, loading, error } = useHabits(currentUser);
+  const { themeColor } = useTheme();
 
   const handleDelete = async (habitId: string, habitName: string) => {
     try {
       await deleteHabit(habitId);
-      setHabits(habits.filter(h => h.id !== habitId));
       showNotification({
         title: 'Success',
         message: `Habit "${habitName}" was deleted successfully`,
-        color: 'blue',
+        color: themeColor,
         icon: <IconTrash size={16} />,
       });
     } catch (error) {
@@ -51,6 +44,27 @@ function HabitsList() {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <Stack align="center" spacing="md" p="xl">
+        <Loader color={themeColor} />
+        <Text size="sm" color="dimmed">Loading habits...</Text>
+      </Stack>
+    );
+  }
+
+  if (error) {
+    return (
+      <Text color="red" align="center">Error loading habits. Please try again.</Text>
+    );
+  }
+
+  if (habits.length === 0) {
+    return (
+      <Text color="dimmed" align="center">No habits yet. Add your first one!</Text>
+    );
+  }
 
   return (
     <Stack spacing="md">
@@ -77,7 +91,6 @@ export default function Manage() {
   const [habitName, setHabitName] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
-  const [habits, setHabits] = useState<Habit[]>([]);
 
   const handleAddHabit = async () => {
     if (!habitName.trim() || !category || !currentUser) return;
@@ -98,10 +111,6 @@ export default function Manage() {
         color: themeColor,
         icon: <IconCheck size={16} />,
       });
-      
-      // Refresh habits list
-      const updatedHabits = await getUserHabits(currentUser);
-      setHabits(updatedHabits);
     } catch (error) {
       console.error('Error adding habit:', error);
       showNotification({

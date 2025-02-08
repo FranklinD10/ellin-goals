@@ -59,6 +59,7 @@ const StyledBottomNav = styled(Box)`
   background-color: ${props => props.theme.colorScheme === 'dark' ? '#1A1B1E' : '#ffffff'};
   border-top: 1px solid ${props => props.theme.colorScheme === 'dark' ? '#2C2E33' : '#e9ecef'};
   z-index: 100;
+  text-align: center; // Add this line
 `;
 
 export default function Layout() {
@@ -85,9 +86,9 @@ export default function Layout() {
       header={
         <Header height={60} p="md" sx={{ position: 'fixed', top: 0, width: '100%' }}>
           <Container size="sm" px="xs">
-            <Group position="apart">
+            <Group position="apart" align="center" sx={{ height: '100%' }}>
               <Text size="lg" weight={700}>ElLin Goals</Text>
-              <Group>
+              <Group spacing="sm" align="center">
                 {!isOnline && (
                   <Text size="sm" color="yellow">Offline Mode</Text>
                 )}
@@ -96,6 +97,7 @@ export default function Layout() {
                   color={colorScheme === 'dark' ? 'yellow' : 'blue'}
                   onClick={handleToggleColorScheme}
                   title="Toggle color scheme"
+                  size="md"
                 >
                   {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoonStars size={18} />}
                 </ActionIcon>
@@ -124,7 +126,7 @@ export default function Layout() {
           <NavLink to="/manage" icon="🎯" label="Habits" />
           <NavLink to="/settings" icon="⚙️" label="Settings" />
         </Group>
-        <Text size="xs" color="dimmed" py={4}>
+        <Text size="xs" color="dimmed" align="center" py={4}> {/* Add align="center" */}
           Created by Franklin with 💖
         </Text>
       </StyledBottomNav>
