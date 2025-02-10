@@ -1,71 +1,101 @@
-import React, { useState } from 'react';
-import { Paper as MantinePaper, Stack, Text, Group, Button } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons';
+import React, { memo, useState } from 'react';
+import { 
+  Paper as MantinePaper, 
+  Stack, 
+  Group, 
+  Text, 
+  Title, 
+  SegmentedControl, 
+  ActionIcon, 
+  Tooltip 
+} from '@mantine/core';
+import { useTheme } from '../contexts/ThemeContext';
 import { showNotification } from '@mantine/notifications';
-import { checkForUpdates } from './updateService';
+import { IconRefresh } from '@tabler/icons-react';  // fixed import
+import UpdatesPaper from './UpdatesPaper';
+import Layout from './Layout';
 
-const Paper = () => {
-  const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
-  const [checkStatus, setCheckStatus] = useState<string>('');
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+// Define types if not imported from a common module:
+type ThemeKey = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
 
-  const handleUpdate = async () => {
-    setIsChecking(true);
-    setCheckStatus('Checking for updates...');
-    
-    try {
-      const hasUpdate = await checkForUpdates();
-      setLastCheckTime(new Date());
-      setUpdateAvailable(hasUpdate);
-      
-      if (hasUpdate) {
-        setCheckStatus('🔄 Update available!');
-        showNotification({
-          title: 'Update Available',
-          message: 'A new version is available. Click to install.',
-          color: 'blue'
-        });
-      } else {
-        setCheckStatus('✨ All up to date!');
-        showNotification({
-          title: 'No Updates',
-          message: 'You are using the latest version.',
-          color: 'green'
-        });
-        // Clear status after 3 seconds when no update is found
-        setTimeout(() => setCheckStatus(''), 3000);
-      }
-    } catch (error) {
-      setCheckStatus('❌ Update check failed');
-      showNotification({
-        title: 'Error',
-        message: 'Failed to check for updates',
-        color: 'red'
-      });
-    } finally {
-      setIsChecking(false);
-    }
-  };
+const themes: Record<ThemeKey, { color: string; label: string }> = {
+  red: { color: '#FF4B4B', label: 'Red' },
+  pink: { color: '#FF69B4', label: 'Pink' },
+  purple: { color: '#9C27B0', label: 'Purple' },
+  blue: { color: '#2196F3', label: 'Blue' },
+  green: { color: '#4CAF50', label: 'Green' },
+  yellow: { color: '#FFC107', label: 'Yellow' },
+};
+
+interface ThemeButtonProps {
+  color: string;
+  label: string;
+  onClick: () => void;
+  isSelected: boolean;
+}
+
+const ThemeButton = memo(({ color, label, onClick, isSelected }: ThemeButtonProps) => (
+  <Tooltip label={label}>
+    <ActionIcon
+      size="xl"
+      sx={(theme) => ({
+        backgroundColor: color,
+        border: isSelected ? `3px solid ${theme.colors.gray[6]}` : 'none',
+        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          transform: 'scale(1.1)',
+        },
+      })}
+      onClick={onClick}
+      variant={isSelected ? 'filled' : 'light'}
+    />
+  </Tooltip>
+));
+
+ThemeButton.displayName = 'ThemeButton';
+
+export default function Settings() {
+  const { colorScheme, toggleColorScheme, setThemeColor, isSelected } = useTheme();
 
   return (
-    <MantinePaper p="md" withBorder>
-      <Stack spacing="md">
-        <Text weight={500}>App Updates</Text>
-        <Group>
-          <Button
-            leftIcon={<IconRefresh size={16} />}
-            onClick={updateAvailable ? () => window.location.reload() : handleUpdate}
-            loading={isChecking}
-            color={updateAvailable ? 'blue' : 'default'}
-          >
-            {updateAvailable ? 'Apply Update' : 'Check for Updates'}
-          </Button>
-          <Stack spacing={4}>
-            {checkStatus && (
-              <Text size="sm" color={updateAvailable ? 'blue' : 'dimmed'}>
-                {checkStatus}
-              </Text>
-            )}
-            {lastCheckTime && (
-              <Text size="xs" color="dimmed"></Text>
+    <Layout>
+      <Title order={2} mb="xl">Settings</Title>
+      <Stack spacing="lg">
+        <MantinePaper p="md" withBorder>
+          <Stack spacing="md">
+            <Text weight={500}>Theme Mode</Text>
+            <SegmentedControl
+              value={colorScheme}
+              onChange={toggleColorScheme as any} // Cast if needed since onChange expects string.
+              data={[
+                { label: 'Light', value: 'light' },
+                { label: 'Dark', value: 'dark' },
+              ]}
+              fullWidth
+            />
+          </Stack>
+        </MantinePaper>
+
+        <MantinePaper p="md" withBorder>
+          <Stack spacing="md">
+            <Text weight={500}>Theme Color</Text>
+            <Group spacing="xs">
+              {(Object.keys(themes) as ThemeKey[]).map((key) => (
+                <ThemeButton
+                  key={key}
+                  color={themes[key].color}
+                  label={themes[key].label}
+                  onClick={() => setThemeColor(key)}
+                  isSelected={isSelected(key)}
+                />
+              ))}
+            </Group>
+          </Stack>
+        </MantinePaper>
+
+        <UpdatesPaper />
+      </Stack>
+    </Layout>
+  );
+}

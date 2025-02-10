@@ -61,7 +61,7 @@ const router = createBrowserRouter([
       { path: "analytics", element: <Analytics /> },
       { path: "manage", element: <Manage /> },
       { path: "health", element: <HealthCheck /> },
-      { path: "settings", element: <Settings /> }
+      { path: "settings", element: <Layout><Settings /></Layout> }
     ],
   }
 ], {

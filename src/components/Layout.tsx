@@ -9,7 +9,7 @@ import { themes } from '../utils/theme-constants';
 import React, { ReactNode } from 'react';
 
 interface LayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 // Modify the AppContainer styled component to remove extra top padding
