@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, Text, Checkbox, Group, Stack, Skeleton, Alert, Box } from '@mantine/core';
 import { useUser } from '../contexts/UserContext';
-import { getUserHabits, logHabitCompletion, getHabitLogs, getTodayLogs } from '../lib/firestore';
+import { getUserHabits, logHabitCompletion, getTodayLogs } from '../lib/firestore';
 import { Habit } from '../types';
 import StatsCard from '../components/StatsCard';
 import CategoryBadge from '../components/CategoryBadge';
@@ -16,9 +16,7 @@ export default function Dashboard() {
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
 
   const loadData = useCallback(async () => {
-    if (isTransitioning) {
-      return;
-    }
+    if (isTransitioning) return;
 
     try {
       setLoading(true);
@@ -29,14 +27,19 @@ export default function Dashboard() {
         getTodayLogs(currentUser)
       ]);
 
-      if (!isTransitioning) { // Check again before updating state
-        setHabits(userHabits);
+      if (!isTransitioning) {
         const completedHabitIds = new Set(
           todayLogs
             .filter(log => log.completed)
             .map(log => log.habit_id)
         );
         setCompletedHabits(completedHabitIds);
+
+        // Filter out completed habits
+        const uncompletedHabits = userHabits.filter(
+          habit => !completedHabitIds.has(habit.id)
+        );
+        setHabits(uncompletedHabits);
         
         if (userHabits.length > 0) {
           setCompletionRate((completedHabitIds.size / userHabits.length) * 100);
@@ -56,7 +59,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (isTransitioning) {
-      // Reset states when transitioning
       setHabits([]);
       setCompletedHabits(new Set());
       setCompletionRate(0);
@@ -73,32 +75,31 @@ export default function Dashboard() {
     try {
       await logHabitCompletion(habitId, currentUser, new Date(), isCompleted);
       
-      setCompletedHabits(prev => {
-        const next = new Set(prev);
-        if (isCompleted) {
+      if (isCompleted) {
+        // Remove the completed habit from the list
+        setHabits(prev => prev.filter(h => h.id !== habitId));
+        setCompletedHabits(prev => {
+          const next = new Set(prev);
           next.add(habitId);
           if (card) {
             playCompletionSound();
             animateCompletion(card as HTMLElement);
           }
-        } else {
-          next.delete(habitId);
-        }
-        return next;
-      });
-
-      // Recalculate completion rate
-      if (habits.length > 0) {
-        setCompletionRate(prev => {
-          const completedCount = isCompleted ? 
-            completedHabits.size + 1 : 
-            completedHabits.size - 1;
-          return (completedCount / habits.length) * 100;
+          return next;
         });
       }
+
+      // Update completion rate
+      setCompletionRate(prev => {
+        const totalHabits = habits.length + completedHabits.size;
+        const completedCount = isCompleted ? 
+          completedHabits.size + 1 : 
+          completedHabits.size;
+        return (completedCount / totalHabits) * 100;
+      });
     } catch (error) {
       console.error('Error toggling habit:', error);
-      await loadData(); // Reload data on error to ensure consistency
+      await loadData();
     }
   }, [currentUser, habits.length, completedHabits.size, loadData]);
 
@@ -133,8 +134,15 @@ export default function Dashboard() {
       </Text>
 
       <Group grow mb="md">
-        <StatsCard title="Weekly Progress" value={completionRate} />
-        <StatsCard title="Total Habits" value={habits.length} suffix="" />
+        <StatsCard 
+          title="Completion Rate" 
+          value={completionRate} 
+        />
+        <StatsCard 
+          title="Remaining Habits" 
+          value={habits.length} 
+          suffix="" 
+        />
       </Group>
 
       {loading ? (
@@ -144,7 +152,9 @@ export default function Dashboard() {
       ) : habits.length === 0 ? (
         <Card>
           <Text align="center" color="dimmed" py="xl">
-            No habits added yet. Go to Habits tab to add some!
+            {completedHabits.size > 0 
+              ? "All habits completed for today! 🎉" 
+              : "No habits added yet. Go to Habits tab to add some!"}
           </Text>
         </Card>
       ) : (
@@ -159,7 +169,6 @@ export default function Dashboard() {
                 <Checkbox
                   size="md"
                   radius="xl"
-                  checked={completedHabits.has(habit.id)}
                   onChange={(event) => handleToggle(habit.id, event)}
                 />
               </Group>

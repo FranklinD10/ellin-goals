@@ -154,6 +154,47 @@ export default function Manage() {
                 required
                 searchable={false}  // Disable searchable to prevent keyboard
                 clearable
+                styles={(theme) => ({
+                  dropdown: {
+                    maxHeight: '75vh', // Increased from 50vh to show more options
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    padding: '8px 0',
+                    minWidth: '200px',
+                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                      maxHeight: '80vh', // Increased from 60vh to show more options
+                      position: 'fixed',
+                      left: '0 !important',
+                      right: '0 !important',
+                      bottom: '0',
+                      border: 'none',
+                      borderTopLeftRadius: theme.radius.lg, // Increased border radius
+                      borderTopRightRadius: theme.radius.lg,
+                      borderBottomLeftRadius: 0,
+                      borderBottomRightRadius: 0,
+                      margin: 0,
+                      width: '100%',
+                      boxShadow: '0 -4px 10px rgba(0,0,0,0.1)', // Enhanced shadow
+                      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+                      zIndex: 1000 // Ensure it's above other elements
+                    }
+                  },
+                  item: {
+                    padding: '12px 16px',
+                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                      padding: '16px', // Adjusted padding
+                      fontSize: '16px',
+                      minHeight: '48px', // Ensure consistent height
+                      display: 'flex',
+                      alignItems: 'center'
+                    }
+                  },
+                  itemsWrapper: {
+                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                      padding: '8px 0'
+                    }
+                  }
+                })}
               />
               <Button 
                 type="submit" 

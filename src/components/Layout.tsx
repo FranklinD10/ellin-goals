@@ -1,4 +1,4 @@
-import { AppShell, Header, Group, Text, Container, Box, ActionIcon, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import { AppShell, Header, Group, Text, Container, Box, ActionIcon, useMantineColorScheme, useMantineTheme, Global } from '@mantine/core';
 import { IconMoonStars, IconSun } from '@tabler/icons-react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import UserSwitcher from './UserSwitcher';
@@ -41,25 +41,14 @@ const ConfettiCanvas = styled.canvas`
   z-index: 100;
 `;
 
+// Modify the AppContainer styled component
 const AppContainer = styled(Container)`
-  padding-top: calc(env(safe-area-inset-top) + 60px);
-  padding-bottom: calc(env(safe-area-inset-bottom) + 80px); /* Increased bottom padding */
+  padding-top: 16px; // Reduced from 30px to 16px
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
   height: 100%;
   position: relative;
-`;
-
-const StyledBottomNav = styled(Box)`
-  padding-bottom: env(safe-area-inset-bottom);
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: ${props => props.theme.colorScheme === 'dark' ? '#1A1B1E' : '#ffffff'};
-  border-top: 1px solid ${props => props.theme.colorScheme === 'dark' ? '#2C2E33' : '#e9ecef'};
-  z-index: 100;
-  text-align: center; // Add this line
 `;
 
 export default function Layout() {
@@ -73,19 +62,30 @@ export default function Layout() {
 
   return (
     <AppShell
-      padding={0}
-      styles={(theme) => ({
-        main: {
-          height: '100vh',
-          overflow: 'hidden',
-          padding: 0,
-          position: 'relative',
-          WebkitOverflowScrolling: 'touch',
-        }
-      })}
       header={
-        <Header height={60} p="md" sx={{ position: 'fixed', top: 0, width: '100%' }}>
-          <Container size="sm" px="xs">
+        <Header 
+          height={60} 
+          p="md" 
+          sx={{ 
+            position: 'fixed',
+            // Use margin-top for iOS safe area
+            marginTop: 'env(safe-area-inset-top)',
+            top: 0, // Reset top position
+            width: '100%',
+            backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+            borderBottom: `1px solid ${
+              theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2]
+            }`
+          }}
+        >
+          <Container 
+            size="sm" 
+            px="xs"
+            sx={{ 
+              height: '100%'
+              // Removed paddingTop since we're handling it in the Header
+            }}
+          >
             <Group position="apart" align="center" sx={{ height: '100%' }}>
               <Text size="lg" weight={700}>ElLin Goals</Text>
               <Group spacing="sm" align="center">
@@ -107,20 +107,43 @@ export default function Layout() {
           </Container>
         </Header>
       }
+      styles={(theme) => ({
+        main: {
+          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
+        }
+      })}
     >
       <ConfettiCanvas id="confetti-canvas" />
+      {/* Then in the AppContainer usage, reduce the Stack padding even further */}
       <AppContainer 
         size="sm" 
         px="xs"
         sx={{ 
           minHeight: 'calc(100vh - env(safe-area-inset-bottom))',
-          paddingBottom: 'calc(60px + env(safe-area-inset-bottom))'
+          paddingBottom: 'calc(60px + env(safe-area-inset-bottom))',
+          '& > .mantine-Stack-root': {
+            paddingTop: '4px' // Reduced from 8px to 4px
+          }
         }}
       >
         <Outlet />
       </AppContainer>
 
-      <StyledBottomNav>
+      <Box
+        sx={(theme) => ({
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+          borderTop: `1px solid ${
+            theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2]
+          }`,
+          zIndex: 100,
+          textAlign: 'center'
+        })}
+      >
         <Group spacing={0} position="center" sx={{ width: '100%' }}>
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/analytics" icon="📈" label="Stats" />
@@ -130,7 +153,7 @@ export default function Layout() {
         <Text size="xs" color="dimmed" align="center" py={4}> {/* Add align="center" */}
           Created by Franklin with 💖
         </Text>
-      </StyledBottomNav>
+      </Box>
     </AppShell>
   );
 }

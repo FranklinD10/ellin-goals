@@ -1,18 +1,19 @@
 import { MantineProvider, ColorSchemeProvider, ColorScheme, MantineThemeOverride, LoadingOverlay, MantineTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter, createBrowserRouter, RouterProvider, Routes, Route } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { UpdateNotification } from './components/UpdateNotification';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Manage from './pages/Manage';
 import HealthCheck from './pages/HealthCheck';
 import Settings from './pages/Settings';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { UpdateNotification } from './components/UpdateNotification';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { audioManager } from './utils/audio';
 import { ThemeColorType } from './types/user';
 
@@ -160,6 +161,7 @@ function AppContent() {
         {!isInitialLoaderVisible && (
           <>
             <Notifications position="top-right" zIndex={2000} />
+            <UpdateNotification /> {/* Make sure this is included */}
             <RouterProvider router={router} />
           </>
         )}

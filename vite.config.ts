@@ -20,7 +20,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // Changed from autoUpdate
       includeAssets: ['favicon.svg', 'pwa-192x192.png', 'splash.png'],
       manifest: {
         name: 'ElLin Goals',
@@ -39,9 +39,15 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: true,
-        skipWaiting: true,
+        skipWaiting: false, // Changed to false to enable update prompt
         clientsClaim: true
-      }
+      },
+      // Add version to filename for cache busting
+      filename: `sw-v${version}.js`,
+      // Add periodic update checks
+      injectRegister: 'script',
+      strategies: 'generateSW',
+      minify: true
     })
   ]
 });
