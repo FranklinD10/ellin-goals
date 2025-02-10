@@ -58,7 +58,7 @@ export default function Settings() {
             <Text weight={500}>Theme Mode</Text>
             <SegmentedControl
               value={colorScheme}
-              onChange={toggleColorScheme}
+              onChange={(value: string) => toggleColorScheme(value as any)} // or (value: string) => toggleColorScheme(value as ColorScheme)
               data={[
                 { label: 'Light', value: 'light' },
                 { label: 'Dark', value: 'dark' },
