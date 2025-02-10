@@ -1,4 +1,5 @@
-export const APP_VERSION = '1.0.1';
+// Get version from package.json
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION || 'dev';
 
 export function checkVersion() {
   const lastVersion = localStorage.getItem('app_version');

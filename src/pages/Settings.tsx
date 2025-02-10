@@ -1,22 +1,31 @@
-import { Container, Title, Paper, Stack, Group, Text, Switch, SegmentedControl, ActionIcon, Tooltip } from '@mantine/core';
+import { Container, Title, Paper as MantinePaper, Stack, Group, Text, SegmentedControl, ActionIcon, Tooltip } from '@mantine/core';
 import { useTheme } from '../contexts/ThemeContext';
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import { showNotification } from '@mantine/notifications';
+import { IconRefresh } from '@tabler/icons-react';
+import { APP_VERSION } from '../utils/version';
+import UpdatesPaper from '../components/UpdatesPaper';
+import Layout from '../components/Layout';
 
-const themes = {
+type ThemeKey = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
+
+const themes: Record<ThemeKey, { color: string; label: string }> = {
   red: { color: '#FF4B4B', label: 'Red' },
   pink: { color: '#FF69B4', label: 'Pink' },
   purple: { color: '#9C27B0', label: 'Purple' },
   blue: { color: '#2196F3', label: 'Blue' },
   green: { color: '#4CAF50', label: 'Green' },
   yellow: { color: '#FFC107', label: 'Yellow' },
-} as const;
+};
 
-const ThemeButton = memo(({ color, label, onClick, isSelected }: {
+interface ThemeButtonProps {
   color: string;
   label: string;
   onClick: () => void;
   isSelected: boolean;
-}) => (
+}
+
+const ThemeButton = memo(({ color, label, onClick, isSelected }: ThemeButtonProps) => (
   <Tooltip label={label}>
     <ActionIcon
       size="xl"
@@ -41,15 +50,15 @@ export default function Settings() {
   const { colorScheme, themeColor, toggleColorScheme, setThemeColor, isSelected } = useTheme();
 
   return (
-    <Container size="sm" py="xl">
+    <Layout>
       <Title order={2} mb="xl">Settings</Title>
       <Stack spacing="lg">
-        <Paper p="md" withBorder>
+        <MantinePaper p="md" withBorder>
           <Stack spacing="md">
             <Text weight={500}>Theme Mode</Text>
             <SegmentedControl
               value={colorScheme}
-              onChange={(value: 'light' | 'dark') => toggleColorScheme(value)}
+              onChange={toggleColorScheme}
               data={[
                 { label: 'Light', value: 'light' },
                 { label: 'Dark', value: 'dark' },
@@ -57,25 +66,27 @@ export default function Settings() {
               fullWidth
             />
           </Stack>
-        </Paper>
+        </MantinePaper>
 
-        <Paper p="md" withBorder>
+        <MantinePaper p="md" withBorder>
           <Stack spacing="md">
             <Text weight={500}>Theme Color</Text>
             <Group spacing="xs">
-              {Object.entries(themes).map(([key, { color, label }]) => (
+              {(Object.keys(themes) as ThemeKey[]).map((key) => (
                 <ThemeButton
                   key={key}
-                  color={color}
-                  label={label}
-                  onClick={() => setThemeColor(key as keyof typeof themes)}
-                  isSelected={isSelected(key as keyof typeof themes)}
+                  color={themes[key].color}
+                  label={themes[key].label}
+                  onClick={() => setThemeColor(key)}
+                  isSelected={isSelected(key)}
                 />
               ))}
             </Group>
           </Stack>
-        </Paper>
+        </MantinePaper>
+
+        <UpdatesPaper />
       </Stack>
-    </Container>
+    </Layout>
   );
 }
