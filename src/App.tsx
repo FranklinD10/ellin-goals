@@ -160,7 +160,18 @@ function AppContent() {
       >
         {!isInitialLoaderVisible && (
           <>
-            <Notifications position="top-right" zIndex={2000} />
+            <Notifications 
+              position="top-right" 
+              zIndex={2000}
+              containerWidth={320}
+              sx={{
+                // Add padding for iOS safe area at the top
+                paddingTop: 'env(safe-area-inset-top)',
+                '& .mantine-Notification-root': {
+                  marginTop: 'env(safe-area-inset-top)' // Ensure first notification respects safe area
+                }
+              }}
+            />
             <UpdateNotification /> {/* Make sure this is included */}
             <RouterProvider router={router} />
           </>
