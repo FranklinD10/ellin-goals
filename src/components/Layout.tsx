@@ -14,9 +14,12 @@ interface LayoutProps {
 
 // Modify the AppContainer styled component to remove extra top padding
 const AppContainer = styled(Container)`
-  /* Remove extra top padding to match other pages */
-  padding: 0;
+  /* Updated container to match habits management page layout */
+  padding: 16px;
+  padding-top: calc(env(safe-area-inset-top) + 16px);
   padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
+  margin: auto;
+  max-width: 800px;
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
   height: 100%;

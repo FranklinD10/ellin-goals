@@ -8,8 +8,14 @@ const checkForUpdates = async () => {
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.ready;
+      // If an updated SW is waiting, inform it to skip waiting
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        return true;
+      }
+      // Trigger update and check again
       await registration.update();
-      return true;
+      return registration.waiting ? true : false;
     } catch (error) {
       console.error('Error checking for updates:', error);
       return false;
@@ -70,7 +76,16 @@ const UpdatesPaper = () => {
         <Group>
           <Button
             leftIcon={<IconRefresh size={16} />}
-            onClick={updateAvailable ? () => window.location.reload() : handleUpdateCheck}
+            onClick={
+              updateAvailable
+                ? () => {
+                    if (navigator.serviceWorker.controller) {
+                      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    window.location.reload();
+                  }
+                : handleUpdateCheck
+            }
             loading={isChecking}
             color={updateAvailable ? 'blue' : 'default'}
           >
