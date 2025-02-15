@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Stack, Card, Text, Group, ThemeIcon } from '@mantine/core';
-import { IconCheck, IconX } from '@tabler/icons-react';
+import { Container, Stack, Card, Typography, Box, CircularProgress } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useUser } from '../contexts/UserContext';
@@ -66,30 +67,31 @@ const HealthCheck: React.FC = () => {
   }, [currentUser]);
 
   return (
-    <Container size="sm" py="xl">
-      <Stack spacing="md">
-        <Text size="xl" weight={700} mb="md">System Health Check</Text>
+    <Container maxWidth="sm" sx={{ py: 3 }}>
+      <Stack spacing={2}>
+        <Typography variant="h5" fontWeight={700} mb={2}>System Health Check</Typography>
         
         {checks.map((check, index) => (
-          <Card key={index} padding="md" radius="md" withBorder>
-            <Group position="apart">
-              <div>
-                <Text weight={500}>{check.name}</Text>
-                <Text size="sm" color="dimmed">{check.message}</Text>
-              </div>
-              <ThemeIcon 
-                color={check.status === 'ok' ? 'teal' : 'red'} 
-                size="lg" 
-                radius="xl"
-              >
-                {check.status === 'ok' ? <IconCheck size={20} /> : <IconX size={20} />}
-              </ThemeIcon>
-            </Group>
+          <Card key={index} sx={{ p: 2, border: 1, borderColor: 'divider' }} elevation={0}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography fontWeight={500}>{check.name}</Typography>
+                <Typography variant="body2" color="text.secondary">{check.message}</Typography>
+              </Box>
+              {check.status === 'ok' ? (
+                <CheckCircleIcon color="success" fontSize="medium" />
+              ) : (
+                <CancelIcon color="error" fontSize="medium" />
+              )}
+            </Box>
           </Card>
         ))}
 
         {checks.length === 0 && (
-          <Text color="dimmed" align="center">Running health checks...</Text>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight={100}>
+            <CircularProgress size={24} sx={{ mr: 1 }} />
+            <Typography color="text.secondary">Running health checks...</Typography>
+          </Box>
         )}
       </Stack>
     </Container>

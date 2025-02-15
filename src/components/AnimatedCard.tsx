@@ -1,58 +1,39 @@
-import React, { ReactNode, forwardRef } from 'react';
+import React, { ReactNode } from 'react';
 import { Card, CardProps } from '@mui/material';
-import { useSwipeable } from 'react-swipeable';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { styled } from '@mui/material/styles';
-import { motion, MotionProps } from 'framer-motion';
 
-interface StyledCardProps extends CardProps {
-  children: ReactNode;
-}
+const MotionCard = styled(motion.div)`
+  will-change: transform;
+  user-select: none;
+  touch-action: manipulation;
+`;
 
-interface AnimatedCardProps extends StyledCardProps {
+interface AnimatedCardProps extends CardProps {
   onSwipe?: () => void;
 }
 
-const StyledCard = styled(Card)<StyledCardProps>`
-  touch-action: pan-y;
-  user-select: none;
-  will-change: transform;
-  transform: translateZ(0);
-  transition: transform 0.2s;
-  &:active {
-    transform: scale(0.98);
-  }
-`;
-
-const MotionContainer = styled(motion.div)<MotionProps>`
-  width: 100%;
-`;
-
-export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(({ children, onSwipe, sx, ...props }, ref) => {
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => onSwipe && onSwipe(),
-    trackMouse: false,
-    preventScrollOnSwipe: true,
-    delta: 10,
-    touchEventOptions: { passive: true }
-  });
+export function AnimatedCard({ children, onSwipe, ...props }: AnimatedCardProps) {
+  const motionProps: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, x: -300 },
+    transition: { type: 'spring', stiffness: 500, damping: 30 },
+    drag: onSwipe ? 'x' : false,
+    dragConstraints: { left: 0, right: 0 },
+    dragElastic: 0.9,
+    onDragEnd: (event, info) => {
+      if (info.offset.x < -100 && onSwipe) {
+        onSwipe();
+      }
+    }
+  };
 
   return (
-    <MotionContainer
-      ref={ref}
-      initial={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      layout
-      transition={{
-        layout: { duration: 0.2 },
-        exit: { duration: 0.2 }
-      }}
-    >
-      <StyledCard 
-        {...swipeHandlers} 
-        {...props}
-      >
+    <MotionCard {...motionProps}>
+      <Card {...props}>
         {children}
-      </StyledCard>
-    </MotionContainer>
+      </Card>
+    </MotionCard>
   );
-});
+}

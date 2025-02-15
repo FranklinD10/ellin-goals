@@ -1,29 +1,28 @@
-import { Box, CircularProgress, Stack, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 
-interface ThemedLoaderProps {
+interface LoaderProps {
   text?: string;
 }
 
-export function ThemedLoader({ text }: ThemedLoaderProps) {
-  const { theme } = useTheme();
+export function ThemedLoader({ text }: LoaderProps) {
+  const { themeColor } = useTheme();
   
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '100%', 
-      minHeight: 200 
-    }}>
-      <Stack spacing={2} alignItems="center">
-        <CircularProgress color="primary" size={48} />
-        {text && (
-          <Typography variant="body2" color="text.secondary">
-            {text}
-          </Typography>
-        )}
-      </Stack>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight={200}
+      gap={2}
+    >
+      <CircularProgress size={48} thickness={4} />
+      {text && (
+        <Typography variant="body2" color="text.secondary">
+          {text}
+        </Typography>
+      )}
     </Box>
   );
 }

@@ -1,53 +1,52 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { showNotification } from '@mantine/notifications';
+import { Box, CircularProgress } from '@mui/material';
 import { UserType, UserData } from '../types';
 import { getUserData } from '../lib/firestore';
-import { LoadingOverlay } from '@mantine/core';
+import { useNotification } from './NotificationContext';
 
 interface UserContextType {
-  currentUser: UserType;
+  currentUser: UserType | null;
   userData: UserData | null;
-  setCurrentUser: (user: UserType) => void;
+  setCurrentUser: (user: UserType | null) => void;
   isTransitioning: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<UserType>(() => 
-    (localStorage.getItem('currentUser') as UserType) || 'El'
-  );
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const handleUserChange = async (user: UserType) => {
-    setIsTransitioning(true);
-    localStorage.setItem('currentUser', user);
-    setCurrentUser(user);
-    
-    // Force a small delay to ensure state updates propagate
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Show notification here instead of in the effect
-    showNotification({
-      title: 'User Switched',
-      message: `Now viewing ${user}'s habits`,
-      color: 'blue'
-    });
-    
-    setIsTransitioning(false);
-  };
+  const { showNotification } = useNotification();
 
   useEffect(() => {
+    if (!currentUser) {
+      setUserData(null);
+      return;
+    }
+
     const loadUserData = async () => {
-      if (!isTransitioning) {
+      try {
         const data = await getUserData(currentUser);
         setUserData(data);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        showNotification({
+          title: 'Error',
+          message: 'Failed to load user data',
+          color: 'error'
+        });
       }
     };
 
     loadUserData();
-  }, [currentUser, isTransitioning]);
+  }, [currentUser, showNotification]);
+
+  const handleUserChange = (user: UserType | null) => {
+    setIsTransitioning(true);
+    setCurrentUser(user);
+    setTimeout(() => setIsTransitioning(false), 300);
+  };
 
   return (
     <UserContext.Provider 
@@ -58,7 +57,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isTransitioning 
       }}
     >
-      {children}
+      <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+        {isTransitioning && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999
+            }}
+          >
+            <CircularProgress size={48} />
+          </Box>
+        )}
+        {children}
+      </Box>
     </UserContext.Provider>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Card, Text, Checkbox, Group, Stack, Skeleton, Alert, Box } from '@mantine/core';
+import { Card, Typography, Checkbox, Stack, Box, CircularProgress, Alert, Grid } from '@mui/material';
 import { useUser } from '../contexts/UserContext';
 import { getUserHabits, logHabitCompletion, getTodayLogs } from '../lib/firestore';
 import { Habit } from '../types';
@@ -9,7 +9,7 @@ import { playCompletionSound, animateCompletion } from '../utils/effects';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedCard } from '../components/AnimatedCard';
 import { isMobile } from 'react-device-detect';
-import { showNotification } from '@mantine/notifications';
+import { useNotification } from '../contexts/NotificationContext';
 import { PageTransition } from '../components/PageTransition';
 
 export default function Dashboard() {
@@ -76,7 +76,7 @@ export default function Dashboard() {
 
   const handleToggle = useCallback(async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const isCompleted = event.target.checked;
-    const card = event.target.closest('.mantine-Card-root');
+    const card = event.target.closest('.MuiCard-root');
     
     try {
       // Optimistically update UI
@@ -150,80 +150,87 @@ export default function Dashboard() {
   // Show loading state while transitioning or loading
   if (isTransitioning || loading) {
     return (
-      <Stack spacing="md" p="md">
-        <Skeleton height={30} width="40%" mb="xl" />
-        <Group grow mb="md">
-          <Skeleton height={90} radius="md" />
-          <Skeleton height={90} radius="md" />
-        </Group>
+      <Stack spacing={2} sx={{ p: 2 }}>
+        <Box sx={{ bgcolor: 'background.paper', height: 30, width: '40%', mb: 3, borderRadius: 1 }} />
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <Box sx={{ bgcolor: 'background.paper', height: 90, borderRadius: 1 }} />
+          </Grid>
+          <Grid item xs={6}>
+            <Box sx={{ bgcolor: 'background.paper', height: 90, borderRadius: 1 }} />
+          </Grid>
+        </Grid>
         {Array(3).fill(0).map((_, i) => (
-          <Skeleton key={i} height={80} radius="md" mb="sm" />
+          <Box key={i} sx={{ bgcolor: 'background.paper', height: 80, borderRadius: 1, mb: 1 }} />
         ))}
       </Stack>
     );
   }
 
   if (error) {
-    return <Alert color="red" mt="md">{error}</Alert>;
+    return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
   }
 
   return (
     <PageTransition>
-      <Stack spacing="md" p="md">
-        <Text size="xl" weight={700} color="dimmed">
+      <Stack spacing={2} sx={{ p: 2 }}>
+        <Typography variant="h5" color="text.secondary">
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long',
             month: 'long',
             day: 'numeric'
           })}
-        </Text>
+        </Typography>
 
-        <Group grow mb="md">
-          <StatsCard 
-            title="Completion Rate" 
-            value={completionRate} 
-          />
-          <StatsCard 
-            title="Remaining Habits" 
-            value={habits.length} 
-            suffix="" 
-          />
-        </Group>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <StatsCard 
+              title="Completion Rate" 
+              value={completionRate} 
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <StatsCard 
+              title="Remaining Habits" 
+              value={habits.length} 
+              suffix="" 
+            />
+          </Grid>
+        </Grid>
 
         {loading ? (
           Array(3).fill(0).map((_, i) => (
-            <Skeleton key={i} height={80} radius="md" mb="sm" />
+            <Box key={i} sx={{ bgcolor: 'background.paper', height: 80, borderRadius: 1, mb: 1 }} />
           ))
         ) : habits.length === 0 ? (
           <AnimatedCard>
-            <Text align="center" color="dimmed" py="xl">
-              {completedHabits.size > 0 
-                ? "All habits completed for today! 🎉" 
-                : "No habits added yet. Go to Habits tab to add some!"}
-            </Text>
+            <Box sx={{ py: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                {completedHabits.size > 0 
+                  ? "All habits completed for today! 🎉" 
+                  : "No habits added yet. Go to Habits tab to add some!"}
+              </Typography>
+            </Box>
           </AnimatedCard>
         ) : (
-          <Stack spacing="sm">
+          <Stack spacing={1}>
             <AnimatePresence mode="popLayout">
               {habits.map(habit => (
                 <AnimatedCard
                   key={habit.id}
-                  p="md"
-                  radius="md"
-                  withBorder
+                  sx={{ p: 2, borderRadius: 1 }}
                   onSwipe={() => isMobile && handleToggle(habit.id, { target: { checked: true } } as any)}
                 >
-                  <Group position="apart" noWrap>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Text weight={500} size="lg">{habit.name}</Text>
+                      <Typography variant="h6" sx={{ fontWeight: 500 }}>{habit.name}</Typography>
                       <CategoryBadge category={habit.category} />
                     </Box>
                     <Checkbox
-                      size="md"
-                      radius="xl"
                       onChange={(event) => handleToggle(habit.id, event)}
+                      sx={{ '& .MuiSvgIcon-root': { fontSize: 28 } }}
                     />
-                  </Group>
+                  </Box>
                 </AnimatedCard>
               ))}
             </AnimatePresence>

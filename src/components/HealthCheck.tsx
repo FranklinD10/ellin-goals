@@ -1,5 +1,5 @@
-import { Text } from '@mantine/core';
+import { Typography } from '@mui/material';
 
-export const HealthCheck = () => (
-  <Text>OK</Text>
-);
+export default function HealthCheck() {
+  return <Typography>Health Check Status</Typography>;
+}

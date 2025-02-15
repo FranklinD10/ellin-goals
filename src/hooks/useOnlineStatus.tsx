@@ -1,18 +1,28 @@
-import React from 'react';
-import { IconWifi, IconWifiOff } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { useNotification } from '../contexts/NotificationContext';
+import WifiIcon from '@mui/icons-material/Wifi';
+import WifiOffIcon from '@mui/icons-material/WifiOff';
 
-interface OnlineStatusResult {
-  isOnline: boolean;
-  icon: React.ReactNode;
-}
+const useOnlineStatus = (): boolean => {
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const { showNotification } = useNotification();
 
-// Change to default export
-export default function useOnlineStatus(): OnlineStatusResult {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+  useEffect(() => {
+    const createNotification = (isOnline: boolean) => ({
+      title: isOnline ? 'Connected' : 'Offline',
+      message: isOnline ? 'Back online' : 'Working in offline mode',
+      color: isOnline ? 'success' : 'warning'
+    });
 
-  React.useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      showNotification(createNotification(true));
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      showNotification(createNotification(false));
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -21,10 +31,9 @@ export default function useOnlineStatus(): OnlineStatusResult {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [showNotification]);
 
-  return {
-    isOnline,
-    icon: isOnline ? <IconWifi size={16} /> : <IconWifiOff size={16} />
-  };
+  return isOnline;
 };
+
+export default useOnlineStatus;

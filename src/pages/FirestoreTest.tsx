@@ -1,33 +1,40 @@
+import { Container, Typography, CircularProgress, Alert } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { Container, Title, Text, Loader, Alert } from '@mantine/core';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getUserDoc } from '../lib/firestore';
 
 export default function FirestoreTest() {
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [docCount, setDocCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function testConnection() {
+    const fetchData = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'analytics'));
-        setDocCount(snapshot.size);
-      } catch (err: any) {
-        setError(err.message || 'Unknown error');
+        const doc = await getUserDoc('test');
+        setData(doc);
+      } catch (err) {
+        setError('Failed to fetch data');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-    testConnection();
+    };
+    fetchData();
   }, []);
 
-  if (loading) return <Loader />;
-  if (error) return <Alert color="red">{error}</Alert>;
+  if (loading) {
+    return <CircularProgress />;
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
 
   return (
-    <Container py="xl">
-      <Title order={2}>Firestore Connection Test</Title>
-      <Text>Documents in "analytics": {docCount}</Text>
+    <Container maxWidth="sm" sx={{ py: 3 }}>
+      <Typography variant="h5" gutterBottom>Firestore Test</Typography>
+      <Typography variant="body1">
+        {JSON.stringify(data, null, 2)}
+      </Typography>
     </Container>
   );
 }

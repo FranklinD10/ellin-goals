@@ -1,8 +1,8 @@
-import { Group, ActionIcon, Tooltip, useMantineColorScheme } from '@mantine/core';
-import { IconSun, IconMoonStars } from '@tabler/icons-react';
-import { useUser } from '../contexts/UserContext';
-import { saveUserSettings } from '../lib/firestore';
-import UserSwitcher from './UserSwitcher';
+import { Box, IconButton, Tooltip } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useTheme } from '../contexts/ThemeContext';
+import { UserSwitcher } from './UserSwitcher';
 
 const themes = {
   red: { color: '#FF4B4B', label: 'Red' },
@@ -15,7 +15,7 @@ const themes = {
 
 export default function ThemeSelector() {
   const { userData, currentUser } = useUser();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { colorScheme, toggleColorScheme } = useTheme();
 
   const handleThemeChange = async (color: keyof typeof themes) => {
     if (!currentUser) return;
@@ -30,28 +30,28 @@ export default function ThemeSelector() {
   };
 
   return (
-    <Group>
-      <Group spacing="xs">
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', gap: 1 }}>
         {Object.entries(themes).map(([key, { color, label }]) => (
-          <Tooltip key={key} label={label}>
-            <ActionIcon
-              size="lg"
+          <Tooltip key={key} title={label}>
+            <IconButton
               sx={{ backgroundColor: color }}
               onClick={() => handleThemeChange(key as keyof typeof themes)}
-              variant={userData?.settings?.themeColor === key ? 'filled' : 'light'}
+              color={userData?.settings?.themeColor === key ? 'primary' : 'default'}
             />
           </Tooltip>
         ))}
-      </Group>
-      <ActionIcon
-        variant="outline"
-        color={colorScheme === 'dark' ? 'yellow' : 'blue'}
-        onClick={() => toggleColorScheme()}
-        title="Toggle color scheme"
-      >
-        {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoonStars size={18} />}
-      </ActionIcon>
+      </Box>
+      <Tooltip title={`Switch to ${colorScheme === 'dark' ? 'light' : 'dark'} mode`}>
+        <IconButton 
+          onClick={() => toggleColorScheme()} 
+          color="inherit"
+          sx={{ border: 1, borderColor: 'divider' }}
+        >
+          {colorScheme === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+      </Tooltip>
       <UserSwitcher />
-    </Group>
+    </Box>
   );
 }

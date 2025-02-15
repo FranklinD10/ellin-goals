@@ -1,5 +1,4 @@
-import { Paper, Typography, Box } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { Card, Typography, Stack } from '@mui/material';
 
 interface StatsCardProps {
   title: string;
@@ -7,33 +6,17 @@ interface StatsCardProps {
   suffix?: string;
 }
 
-const StatsContainer = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: 90,
-  gap: theme.spacing(0.5),
-  textAlign: 'center',
-}));
-
 export default function StatsCard({ title, value, suffix = '%' }: StatsCardProps) {
   return (
-    <StatsContainer>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-        <Typography variant="h4" component="div" fontWeight="bold">
-          {Math.round(value)}
+    <Card sx={{ p: 2, flex: 1 }}>
+      <Stack spacing={1}>
+        <Typography variant="body2" color="text.secondary">
+          {title}
         </Typography>
-        {suffix && (
-          <Typography variant="body1" color="text.secondary">
-            {suffix}
-          </Typography>
-        )}
-      </Box>
-    </StatsContainer>
+        <Typography variant="h4" fontWeight={700}>
+          {value.toFixed(0)}{suffix}
+        </Typography>
+      </Stack>
+    </Card>
   );
 }

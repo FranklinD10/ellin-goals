@@ -1,11 +1,11 @@
-import { Fab, Tooltip } from '@mui/material';
+import { Tooltip, Fab } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function FloatingActionButton() {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { themeColor } = useTheme();
 
   return (
     <Tooltip title="Add New Habit" placement="left">
@@ -16,7 +16,8 @@ export default function FloatingActionButton() {
           position: 'fixed',
           right: 20,
           bottom: 80,
-          boxShadow: theme.shadows[4],
+          width: 56,
+          height: 56,
         }}
       >
         <AddIcon />

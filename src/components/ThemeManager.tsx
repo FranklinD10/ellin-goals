@@ -1,23 +1,21 @@
 import { useEffect } from 'react';
-import { useMantineColorScheme } from '@mantine/core';
+import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
-import { saveUserSettings } from '../lib/firestore';
 
 interface ThemeManagerProps {
   children: React.ReactNode;
-  onColorSchemeChange: (scheme: 'light' | 'dark') => void;
-  onThemeColorChange: (color: string) => void;
 }
 
-export default function ThemeManager({ children, onColorSchemeChange, onThemeColorChange }: ThemeManagerProps) {
-  const { userData, currentUser } = useUser();
+export default function ThemeManager({ children }: ThemeManagerProps) {
+  const { userData } = useUser();
+  const { toggleColorScheme, setThemeColor } = useTheme();
 
   useEffect(() => {
     if (userData?.settings) {
-      onColorSchemeChange(userData.settings.theme);
-      onThemeColorChange(userData.settings.themeColor);
+      toggleColorScheme(userData.settings.theme);
+      setThemeColor(userData.settings.themeColor);
     }
-  }, [userData, onColorSchemeChange, onThemeColorChange]);
+  }, [userData, toggleColorScheme, setThemeColor]);
 
   return <>{children}</>;
 }

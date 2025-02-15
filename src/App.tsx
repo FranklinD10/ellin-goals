@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { UpdateNotification } from './components/UpdateNotification';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
@@ -81,7 +82,9 @@ export default function App() {
       <AuthProvider>
         <UserProvider>
           <ThemeProvider>
-            <AppContent />
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
           </ThemeProvider>
         </UserProvider>
       </AuthProvider>

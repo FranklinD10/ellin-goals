@@ -1,23 +1,24 @@
-import { ActionIcon } from '@mantine/core';
-import { useMantineColorScheme } from '@mantine/core';
-import { IconSun, IconMoonStars } from '@tabler/icons-react';
+import { IconButton } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useTheme } from './contexts/ThemeContext';
 
 // ...existing imports...
 
 export default function Layout() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { colorScheme, toggleColorScheme } = useTheme();
   
   // ...existing code...
   
   return (
-    <ActionIcon
-      variant="outline"
-      color={colorScheme === 'dark' ? 'yellow' : 'blue'}
+    <IconButton
+      sx={{ border: 1, borderColor: 'divider' }}
       onClick={() => toggleColorScheme()}
-      title="Toggle color scheme"
+      color="inherit"
+      size="large"
     >
-      {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoonStars size={18} />}
-    </ActionIcon>
+      {colorScheme === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+    </IconButton>
   );
   
   // ...rest of the code...

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Container, Title, Loader, Alert, Table } from '@mantine/core';
+import { Container, Typography, CircularProgress, Alert, Table, TableHead, TableBody, TableRow, TableCell, Paper } from '@mui/material';
 import { getAnalytics } from '../lib/firestore';
 
 export default function Stats() {
@@ -19,28 +19,43 @@ export default function Stats() {
     fetchAnalytics();
   }, []);
 
-  if (loading) return <Loader />;
-  if (!analytics.length) return <Alert color="yellow">No analytics data available.</Alert>;
+  if (loading) {
+    return (
+      <Container sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+  
+  if (!analytics.length) {
+    return (
+      <Container sx={{ py: 3 }}>
+        <Alert severity="warning">No analytics data available.</Alert>
+      </Container>
+    );
+  }
 
   return (
-    <Container py="xl">
-      <Title order={2}>Dynamic Analytics</Title>
-      <Table striped highlightOnHover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Data</th>
-          </tr>
-        </thead>
-        <tbody>
-          {analytics.map(item => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{JSON.stringify(item)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+    <Container sx={{ py: 3 }}>
+      <Typography variant="h5" gutterBottom>Dynamic Analytics</Typography>
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Data</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {analytics.map(item => (
+              <TableRow key={item.id} hover>
+                <TableCell>{item.id}</TableCell>
+                <TableCell>{JSON.stringify(item)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
     </Container>
   );
 }

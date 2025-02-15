@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from 'firebase/auth';
 import { auth, signInAnonymousUser } from '../lib/firebase';
-import { showNotification } from '@mantine/notifications';
+import { useNotification } from './NotificationContext';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +17,7 @@ const RETRY_DELAY = 1000;
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     let retryCount = 0;
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         showNotification({
           title: 'Authentication Error',
           message: 'Failed to connect to authentication service',
-          color: 'red'
+          color: 'error'
         });
         setLoading(false);
       }
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     connectAuth();
     return () => { mounted = false; };
-  }, []);
+  }, [showNotification]);
 
   const signIn = async () => {
     try {

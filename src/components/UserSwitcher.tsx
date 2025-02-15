@@ -1,4 +1,4 @@
-import { Menu, IconButton, Avatar, Typography, Box, MenuItem } from '@mui/material';
+import { Menu, MenuItem, IconButton, Avatar, Typography, Stack } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useUser } from '../contexts/UserContext';
 import { UserType } from '../types';
@@ -22,49 +22,58 @@ export default function UserSwitcher() {
     setAnchorEl(null);
   };
 
+  const handleUserChange = (user: UserType) => {
+    setCurrentUser(user);
+    handleClose();
+  };
+
   return (
     <>
       <IconButton
         onClick={handleClick}
         size="small"
-        sx={{ 
-          ml: 1,
-          border: theme => `1px solid ${theme.palette.divider}`,
+        sx={{
+          border: 1,
+          borderColor: 'divider',
           borderRadius: 2,
-          px: 1
+          px: 1,
         }}
       >
-        <Avatar 
-          sx={{ width: 24, height: 24, fontSize: '14px', mr: 1 }}
-        >
-          {userDetails[currentUser].avatar}
-        </Avatar>
-        <Typography variant="body2" sx={{ mx: 1 }}>
-          {currentUser}
-        </Typography>
-        <KeyboardArrowDownIcon fontSize="small" />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Avatar sx={{ width: 24, height: 24, fontSize: '1rem' }}>
+            {userDetails[currentUser].avatar}
+          </Avatar>
+          <Typography variant="body2" fontWeight={500}>
+            {currentUser}
+          </Typography>
+          <KeyboardArrowDownIcon fontSize="small" />
+        </Stack>
       </IconButton>
       
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
       >
         {Object.entries(userDetails).map(([user, details]) => (
           <MenuItem
             key={user}
-            onClick={() => {
-              setCurrentUser(user as UserType);
-              handleClose();
-            }}
+            onClick={() => handleUserChange(user as UserType)}
             selected={currentUser === user}
+            sx={{ minWidth: 150 }}
           >
-            <Box component="span" sx={{ mr: 1 }}>
-              {details.avatar}
-            </Box>
-            {user}
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography>{details.avatar}</Typography>
+              <Typography>{user}</Typography>
+            </Stack>
           </MenuItem>
         ))}
       </Menu>

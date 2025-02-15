@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
-import { showNotification } from '@mantine/notifications';
-import { IconRefresh } from '@tabler/icons-react';
+import { useNotification } from '../contexts/NotificationContext';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 export function UpdateNotification() {
+  const { showNotification } = useNotification();
+
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
@@ -15,9 +17,8 @@ export function UpdateNotification() {
                 showNotification({
                   title: 'Update Available',
                   message: 'A new version is available. Click here to update.',
-                  color: 'blue',
-                  icon: <IconRefresh size={16} />,
-                  autoClose: false,
+                  color: 'info',
+                  autoHideDuration: null,
                   onClick: () => {
                     newWorker.postMessage({ type: 'SKIP_WAITING' });
                     window.location.reload();
@@ -37,7 +38,7 @@ export function UpdateNotification() {
         }
       });
     }
-  }, []);
+  }, [showNotification]);
 
   return null;
 }

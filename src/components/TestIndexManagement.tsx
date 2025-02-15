@@ -1,15 +1,15 @@
-import { Button, Stack, Typography } from '@mui/material';
+import { Button, Stack, Typography, Box } from '@mui/material';
 import { addHabit, getHabitLogs, logHabitCompletion } from '../lib/firestore';
 import { useUser } from '../contexts/UserContext';
 import { useState } from 'react';
-import { useSnackbar } from 'notistack';
+import { useNotification } from '../contexts/NotificationContext';
 
 export function TestIndexManagement() {
   const { currentUser } = useUser();
+  const { showNotification } = useNotification();
   const [loading, setLoading] = useState(false);
-  const { enqueueSnackbar } = useSnackbar();
 
-  const runTest = async () => {
+  const handleTest = async () => {
     setLoading(true);
     try {
       // 1. Add a test habit
@@ -29,15 +29,19 @@ export function TestIndexManagement() {
       startDate.setDate(startDate.getDate() - 7);
       const logs = await getHabitLogs(habit.id, startDate);
       
-      enqueueSnackbar(`Found ${logs.length} logs. Check console for details.`, {
-        variant: 'success'
+      showNotification({
+        title: 'Test Complete',
+        message: `Found ${logs.length} logs. Check console for details.`,
+        color: 'success'
       });
       
       console.log('Test Results:', { habit, logs });
     } catch (error) {
       console.error('Test failed:', error);
-      enqueueSnackbar('Test failed. Check console for error details', {
-        variant: 'error'
+      showNotification({
+        title: 'Test Failed',
+        message: 'Check console for error details',
+        color: 'error'
       });
     } finally {
       setLoading(false);
@@ -46,14 +50,8 @@ export function TestIndexManagement() {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h6">Test Index Management</Typography>
-      <Button 
-        onClick={runTest} 
-        disabled={loading}
-        variant="contained"
-        color="primary"
-        sx={{ alignSelf: 'flex-start' }}
-      >
+      <Typography variant="h6">Index Management</Typography>
+      <Button variant="contained" onClick={handleTest} disabled={loading}>
         Run Test
       </Button>
     </Stack>

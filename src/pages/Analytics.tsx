@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Text, Grid, Card, Center, Title, Paper } from '@mantine/core';
+import { Stack, Typography, Grid, Card, Box, Container, Paper, CircularProgress } from '@mui/material';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
   BarChart, Bar, Tooltip, PieChart, Pie, Cell, Legend
@@ -7,21 +7,21 @@ import {
 import { useUser } from '../contexts/UserContext';
 import { getUserHabits, getHabitLogs } from '../lib/firestore';
 import { Habit, HabitLog } from '../types';
-import styled from 'styled-components';
+import { styled } from '@mui/material/styles';
 import { PageTransition } from '../components/PageTransition';
 
-const ChartContainer = styled.div`
-  width: 100%;
-  min-height: 300px;
-  margin-bottom: 16px;
-  overflow: visible;
-`;
+const ChartContainer = styled('div')({
+  width: '100%',
+  minHeight: 300,
+  marginBottom: 16,
+  overflow: 'visible',
+});
 
-const ScrollableStack = styled(Stack)`
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-`;
+const ScrollableStack = styled(Stack)({
+  overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+});
 
 export default function Analytics() {
   const { currentUser } = useUser();
@@ -90,18 +90,18 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <Stack spacing="xl" p="md">
-        <Text size="xl">Loading analytics...</Text>
+      <Stack spacing={3} p={2}>
+        <CircularProgress />
       </Stack>
     );
   }
 
   if (habits.length === 0) {
     return (
-      <Stack spacing="xl" p="md">
-        <Center style={{ minHeight: '200px' }}>
-          <Text color="dimmed">Add some habits to see analytics</Text>
-        </Center>
+      <Stack spacing={3} p={2}>
+        <Box display="flex" justifyContent="center" minHeight={200} alignItems="center">
+          <Typography color="text.secondary">Add some habits to see analytics</Typography>
+        </Box>
       </Stack>
     );
   }
@@ -111,12 +111,12 @@ export default function Analytics() {
 
   return (
     <PageTransition>
-      <ScrollableStack spacing="xl">
-        <Title order={2}>Analytics</Title>
+      <ScrollableStack spacing={3}>
+        <Typography variant="h5">Analytics</Typography>
 
-        <Paper p="md" withBorder>
-          <Stack spacing="md">
-            <Text weight={500}>Habits by Category</Text>
+        <Paper elevation={0} sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+          <Stack spacing={2}>
+            <Typography fontWeight={500}>Habits by Category</Typography>
             <ChartContainer>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -149,33 +149,35 @@ export default function Analytics() {
           </Stack>
         </Paper>
 
-        <Grid>
-          <Grid.Col span={12}>
+        <Grid container>
+          <Grid item xs={12}>
             <Card>
-              <Text weight={500} mb="md">Weekly Completion Rate</Text>
-              {weeklyData.some(d => d.total > 0) ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="rate" 
-                      stroke="#FF4B4B" 
-                      strokeWidth={2}
-                      name="Completion Rate (%)"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <Center style={{ height: 300 }}>
-                  <Text color="dimmed">Complete some habits to see the trend</Text>
-                </Center>
-              )}
+              <Box p={2}>
+                <Typography fontWeight={500} mb={2}>Weekly Completion Rate</Typography>
+                {weeklyData.some(d => d.total > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="rate" 
+                        stroke="#FF4B4B" 
+                        strokeWidth={2}
+                        name="Completion Rate (%)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box display="flex" justifyContent="center" alignItems="center" height={300}>
+                    <Typography color="text.secondary">Complete some habits to see the trend</Typography>
+                  </Box>
+                )}
+              </Box>
             </Card>
-          </Grid.Col>
+          </Grid>
         </Grid>
       </ScrollableStack>
     </PageTransition>
