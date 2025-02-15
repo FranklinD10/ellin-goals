@@ -10,6 +10,15 @@ export function TestIndexManagement() {
   const [loading, setLoading] = useState(false);
 
   const handleTest = async () => {
+    if (!currentUser) {
+      showNotification({
+        title: 'Error',
+        message: 'No current user',
+        color: 'error'
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // 1. Add a test habit

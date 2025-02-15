@@ -41,7 +41,7 @@ export default function UserSwitcher() {
       >
         <Stack direction="row" spacing={1} alignItems="center">
           <Avatar sx={{ width: 24, height: 24, fontSize: '1rem' }}>
-            {userDetails[currentUser].avatar}
+            {userDetails[currentUser!]?.avatar}
           </Avatar>
           <Typography variant="body2" fontWeight={500}>
             {currentUser}

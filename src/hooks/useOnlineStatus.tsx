@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNotification } from '../contexts/NotificationContext';
 import WifiIcon from '@mui/icons-material/Wifi';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
+import { AlertColor } from '@mui/material';
 
 const useOnlineStatus = (): boolean => {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
@@ -11,7 +12,7 @@ const useOnlineStatus = (): boolean => {
     const createNotification = (isOnline: boolean) => ({
       title: isOnline ? 'Connected' : 'Offline',
       message: isOnline ? 'Back online' : 'Working in offline mode',
-      color: isOnline ? 'success' : 'warning'
+      color: isOnline ? 'success' : 'warning' as AlertColor
     });
 
     const handleOnline = () => {

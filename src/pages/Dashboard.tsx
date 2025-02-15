@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
   const optimisticUpdates = useRef(new Map<string, boolean>()).current;
+  const showNotification = useNotification();
 
   const loadData = useCallback(async () => {
     if (isTransitioning) return;
@@ -29,8 +30,8 @@ export default function Dashboard() {
       setError(null);
 
       const [userHabits, todayLogs] = await Promise.all([
-        getUserHabits(currentUser),
-        getTodayLogs(currentUser)
+        getUserHabits(currentUser!),
+        getTodayLogs(currentUser!)
       ]);
 
       if (!isTransitioning) {
@@ -105,7 +106,7 @@ export default function Dashboard() {
       });
 
       // Perform actual update
-      const result = await logHabitCompletion(habitId, currentUser, new Date(), isCompleted);
+      const result = await logHabitCompletion(habitId, currentUser!, new Date(), isCompleted);
       
       // Clear optimistic update after success
       optimisticUpdates.delete(habitId);

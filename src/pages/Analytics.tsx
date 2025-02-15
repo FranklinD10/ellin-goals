@@ -33,7 +33,7 @@ export default function Analytics() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userHabits = await getUserHabits(currentUser);
+        const userHabits = await getUserHabits(currentUser!);
         setHabits(userHabits);
 
         // Get logs for the past 7 days for each habit

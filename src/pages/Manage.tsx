@@ -26,7 +26,7 @@ const CATEGORIES = [
 
 function HabitsList() {
   const { currentUser } = useUser();
-  const { habits, loading, error } = useHabits(currentUser);
+  const { habits, loading, error } = useHabits(currentUser!);
   const { theme } = useTheme();
   const { showNotification } = useNotification();
 
@@ -36,8 +36,7 @@ function HabitsList() {
       showNotification({
         title: 'Success',
         message: `Habit "${habitName}" was deleted successfully`,
-        color: 'success',
-        icon: <DeleteIcon fontSize="small" />
+        color: 'success'
       });
     } catch (error) {
       console.error('Error deleting habit:', error);
@@ -117,8 +116,7 @@ export default function Manage() {
       showNotification({
         title: 'Success',
         message: `Habit "${habitName}" was added successfully`,
-        color: 'success',
-        icon: <CheckIcon fontSize="small" />
+        color: 'success'
       });
     } catch (error) {
       console.error('Error adding habit:', error);

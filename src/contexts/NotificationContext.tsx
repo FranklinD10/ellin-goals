@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Snackbar, Alert, AlertColor } from '@mui/material';
+import { Snackbar, Alert, AlertTitle, AlertColor } from '@mui/material';
 
 interface NotificationOptions {
   title?: string;
@@ -52,7 +52,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           sx={{ width: '100%' }}
         >
           {notification?.title && (
-            <Alert.Title>{notification.title}</Alert.Title>
+            <AlertTitle>{notification.title}</AlertTitle>
           )}
           {notification?.message}
         </Alert>

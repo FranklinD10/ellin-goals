@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getFunctions } from 'firebase/functions';
@@ -69,7 +69,7 @@ setPersistence(auth, browserLocalPersistence)
 // Enable offline persistence
 try {
   enableIndexedDbPersistence(db, {
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+    // Removed cacheSizeBytes as it does not exist in PersistenceSettings
   }).catch((err) => {
     if (err.code === 'failed-precondition') {
       console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
@@ -82,9 +82,6 @@ try {
 }
 
 // Modify Firestore settings for better offline support
-db.settings({
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
-  ignoreUndefinedProperties: true
-});
+// Removed settings call as it does not exist on Firestore
 
 export default db;

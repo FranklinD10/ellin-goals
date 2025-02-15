@@ -1,8 +1,8 @@
 import React, { memo, useState } from 'react';
 import { 
+  Box, 
   Paper, 
   Stack, 
-  Group, 
   Typography, 
   ToggleButtonGroup, 
   ToggleButton, 
@@ -80,7 +80,7 @@ export default function Settings() {
         <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
           <Stack spacing={2}>
             <Typography fontWeight={500}>Theme Color</Typography>
-            <Group spacing={1.5}>
+            <Stack direction="row" spacing={1.5}>
               {(Object.keys(themes) as ThemeKey[]).map((key) => (
                 <ThemeButton
                   key={key}
@@ -90,7 +90,7 @@ export default function Settings() {
                   isSelected={isSelected(key)}
                 />
               ))}
-            </Group>
+            </Stack>
           </Stack>
         </Paper>
 

@@ -2,7 +2,9 @@ import { Box, IconButton, Tooltip } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useTheme } from '../contexts/ThemeContext';
-import { UserSwitcher } from './UserSwitcher';
+import UserSwitcher from './UserSwitcher';
+import { useUser } from '../contexts/UserContext';
+import { saveUserSettings } from '../lib/firestore';
 
 const themes = {
   red: { color: '#FF4B4B', label: 'Red' },
