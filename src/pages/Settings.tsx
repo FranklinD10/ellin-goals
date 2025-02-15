@@ -1,45 +1,41 @@
-import { Container, Title, Paper as MantinePaper, Stack, Group, Text, SegmentedControl, ActionIcon, Tooltip } from '@mantine/core';
+import { Paper, Stack, FormControl, Typography, ToggleButtonGroup, ToggleButton, IconButton, Box, Tooltip } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
-import { memo, useState } from 'react';
-import { showNotification } from '@mantine/notifications';
-import { IconRefresh } from '@tabler/icons-react';
-import { APP_VERSION } from '../utils/version';
+import { DarkMode, LightMode, Palette } from '@mui/icons-material';
+import { memo } from 'react';
 import UpdatesPaper from '../components/UpdatesPaper';
-import Layout from '../components/Layout';
+import { themes } from '../theme/mui-theme';
+import { PageTransition } from '../components/PageTransition';
 
-type ThemeKey = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
-
-const themes: Record<ThemeKey, { color: string; label: string }> = {
-  red: { color: '#FF4B4B', label: 'Red' },
-  pink: { color: '#FF69B4', label: 'Pink' },
-  purple: { color: '#9C27B0', label: 'Purple' },
-  blue: { color: '#2196F3', label: 'Blue' },
-  green: { color: '#4CAF50', label: 'Green' },
-  yellow: { color: '#FFC107', label: 'Yellow' },
-};
-
-interface ThemeButtonProps {
+interface ColorButtonProps {
   color: string;
   label: string;
   onClick: () => void;
   isSelected: boolean;
 }
 
-const ThemeButton = memo(({ color, label, onClick, isSelected }: ThemeButtonProps) => (
-  <Tooltip label={label}>
-    <ActionIcon
-      size="xl"
-      sx={(theme) => ({
+const ThemeButton = memo(({ color, label, onClick, isSelected }: ColorButtonProps) => (
+  <Tooltip title={label} placement="bottom">
+    <IconButton
+      onClick={onClick}
+      sx={{
         backgroundColor: color,
-        border: isSelected ? `3px solid ${theme.colors.gray[6]}` : 'none',
+        width: 48,
+        height: 48,
+        border: theme => isSelected ? `3px solid ${theme.palette.primary.main}` : '3px solid transparent',
         transform: isSelected ? 'scale(1.1)' : 'scale(1)',
         transition: 'all 0.2s ease',
         '&:hover': {
+          backgroundColor: color,
           transform: 'scale(1.1)',
+        },
+        '&:active': {
+          transform: 'scale(0.95)',
+        },
+        '@media (max-width: 768px)': {
+          width: 56,
+          height: 56,
         }
-      })}
-      onClick={onClick}
-      variant={isSelected ? 'filled' : 'light'}
+      }}
     />
   </Tooltip>
 ));
@@ -47,46 +43,89 @@ const ThemeButton = memo(({ color, label, onClick, isSelected }: ThemeButtonProp
 ThemeButton.displayName = 'ThemeButton';
 
 export default function Settings() {
-  const { colorScheme, themeColor, toggleColorScheme, setThemeColor, isSelected } = useTheme();
+  const { mode, toggleColorMode, setThemeColor, isSelected } = useTheme();
 
   return (
-    <Layout>
-      <Title order={2} mb="xl">Settings</Title>
-      <Stack spacing="lg">
-        <MantinePaper p="md" withBorder>
-          <Stack spacing="md">
-            <Text weight={500}>Theme Mode</Text>
-            <SegmentedControl
-              value={colorScheme}
-              onChange={(value: string) => toggleColorScheme(value as any)} // or (value: string) => toggleColorScheme(value as ColorScheme)
-              data={[
-                { label: 'Light', value: 'light' },
-                { label: 'Dark', value: 'dark' },
-              ]}
-              fullWidth
-            />
-          </Stack>
-        </MantinePaper>
+    <PageTransition>
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: 2, pb: 'calc(env(safe-area-inset-bottom) + 80px)' }}>
+        <Stack spacing={3}>
+          <Box pt={1}>
+            <Typography variant="h5" component="h2">Settings</Typography>
+          </Box>
 
-        <MantinePaper p="md" withBorder>
-          <Stack spacing="md">
-            <Text weight={500}>Theme Color</Text>
-            <Group spacing="xs">
-              {(Object.keys(themes) as ThemeKey[]).map((key) => (
-                <ThemeButton
-                  key={key}
-                  color={themes[key].color}
-                  label={themes[key].label}
-                  onClick={() => setThemeColor(key)}
-                  isSelected={isSelected(key)}
-                />
-              ))}
-            </Group>
-          </Stack>
-        </MantinePaper>
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <IconButton 
+                    size="large" 
+                    color="primary"
+                    sx={{ 
+                      bgcolor: theme => theme.palette.action.hover,
+                      borderRadius: 2
+                    }}
+                  >
+                    {mode === 'dark' ? <DarkMode /> : <LightMode />}
+                  </IconButton>
+                  <div>
+                    <Typography variant="subtitle1" fontWeight={500}>Theme Mode</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Adjust the appearance of the app
+                    </Typography>
+                  </div>
+                </Stack>
 
-        <UpdatesPaper />
-      </Stack>
-    </Layout>
+                <FormControl>
+                  <ToggleButtonGroup
+                    value={mode}
+                    exclusive
+                    onChange={(_, value) => value && toggleColorMode(value)}
+                    aria-label="theme mode"
+                  >
+                    <ToggleButton value="light">Light</ToggleButton>
+                    <ToggleButton value="dark">Dark</ToggleButton>
+                  </ToggleButtonGroup>
+                </FormControl>
+              </Stack>
+
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <IconButton 
+                    size="large"
+                    color="primary"
+                    sx={{ 
+                      bgcolor: theme => theme.palette.action.hover,
+                      borderRadius: 2
+                    }}
+                  >
+                    <Palette />
+                  </IconButton>
+                  <div>
+                    <Typography variant="subtitle1" fontWeight={500}>Theme Color</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Choose your preferred accent color
+                    </Typography>
+                  </div>
+                </Stack>
+                
+                <Stack direction="row" spacing={1.5} sx={{ pl: 6.5 }}>
+                  {(Object.entries(themes)).map(([key, { main, label }]) => (
+                    <ThemeButton
+                      key={key}
+                      color={main}
+                      label={label}
+                      onClick={() => setThemeColor(key as any)}
+                      isSelected={isSelected(key as any)}
+                    />
+                  ))}
+                </Stack>
+              </Stack>
+            </Stack>
+          </Paper>
+
+          <UpdatesPaper />
+        </Stack>
+      </Box>
+    </PageTransition>
   );
 }

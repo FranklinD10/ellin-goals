@@ -1,4 +1,4 @@
-import { Center, Loader, Stack, Text } from '@mantine/core';
+import { Box, CircularProgress, Stack, Typography } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemedLoaderProps {
@@ -6,14 +6,24 @@ interface ThemedLoaderProps {
 }
 
 export function ThemedLoader({ text }: ThemedLoaderProps) {
-  const { themeColor } = useTheme();
+  const { theme } = useTheme();
   
   return (
-    <Center style={{ height: '100%', minHeight: 200 }}>
-      <Stack align="center" spacing="sm">
-        <Loader color={themeColor} size="xl" variant="oval" />
-        {text && <Text size="sm" color="dimmed">{text}</Text>}
+    <Box sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '100%', 
+      minHeight: 200 
+    }}>
+      <Stack spacing={2} alignItems="center">
+        <CircularProgress color="primary" size={48} />
+        {text && (
+          <Typography variant="body2" color="text.secondary">
+            {text}
+          </Typography>
+        )}
       </Stack>
-    </Center>
+    </Box>
   );
 }

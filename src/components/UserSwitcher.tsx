@@ -1,59 +1,73 @@
-import { Menu, UnstyledButton, Group, Avatar, Text } from '@mantine/core';
-import { IconChevronDown } from '@tabler/icons-react';
+import { Menu, IconButton, Avatar, Typography, Box, MenuItem } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useUser } from '../contexts/UserContext';
 import { UserType } from '../types';
+import { useState } from 'react';
 
 export default function UserSwitcher() {
   const { currentUser, setCurrentUser } = useUser();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   const userDetails: Record<UserType, { color: string; avatar: string }> = {
     El: { color: 'pink', avatar: '👩' },
     Lin: { color: 'blue', avatar: '👨' }
   };
 
-  return (
-    <Menu shadow="md" width={200} position="bottom-end">
-      <Menu.Target>
-        <UnstyledButton
-          sx={(theme) => ({
-            display: 'flex',
-            alignItems: 'center',
-            height: '36px', // Fixed height
-            padding: '0 theme.spacing.xs',
-            borderRadius: theme.radius.md,
-            border: `1px solid ${
-              theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]
-            }`,
-            '&:hover': {
-              backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[0]
-            },
-            verticalAlign: 'middle'
-          })}
-        >
-          <Group spacing="xs" sx={{ height: '100%' }}>
-            <Avatar size={24} radius="xl">
-              {userDetails[currentUser].avatar}
-            </Avatar>
-            <Text size="sm" weight={500} sx={{ lineHeight: 1 }}>
-              {currentUser}
-            </Text>
-            <IconChevronDown size={14} />
-          </Group>
-        </UnstyledButton>
-      </Menu.Target>
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-      <Menu.Dropdown>
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <>
+      <IconButton
+        onClick={handleClick}
+        size="small"
+        sx={{ 
+          ml: 1,
+          border: theme => `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          px: 1
+        }}
+      >
+        <Avatar 
+          sx={{ width: 24, height: 24, fontSize: '14px', mr: 1 }}
+        >
+          {userDetails[currentUser].avatar}
+        </Avatar>
+        <Typography variant="body2" sx={{ mx: 1 }}>
+          {currentUser}
+        </Typography>
+        <KeyboardArrowDownIcon fontSize="small" />
+      </IconButton>
+      
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
         {Object.entries(userDetails).map(([user, details]) => (
-          <Menu.Item
+          <MenuItem
             key={user}
-            icon={<Text>{details.avatar}</Text>}
-            onClick={() => setCurrentUser(user as UserType)}
-            sx={{ fontWeight: currentUser === user ? 600 : 400 }}
+            onClick={() => {
+              setCurrentUser(user as UserType);
+              handleClose();
+            }}
+            selected={currentUser === user}
           >
+            <Box component="span" sx={{ mr: 1 }}>
+              {details.avatar}
+            </Box>
             {user}
-          </Menu.Item>
+          </MenuItem>
         ))}
-      </Menu.Dropdown>
-    </Menu>
+      </Menu>
+    </>
   );
 }

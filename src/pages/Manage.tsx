@@ -8,6 +8,7 @@ import { Habit } from '../types';
 import CategoryBadge from '../components/CategoryBadge';
 import { useTheme } from '../contexts/ThemeContext';
 import { useHabits } from '../hooks/useHabits';
+import { PageTransition } from '../components/PageTransition';
 
 const CATEGORIES = [
   { value: 'health', label: '🏃 Health & Fitness' },
@@ -129,88 +130,90 @@ export default function Manage() {
   };
 
   return (
-    <Container size="sm" py="xl">
-      <Stack spacing="lg">
-        <Group position="apart">
-          <Text size="xl">Manage Habits</Text>
-        </Group>
+    <PageTransition>
+      <Container size="sm" py="xl">
+        <Stack spacing="lg">
+          <Group position="apart">
+            <Text size="xl">Manage Habits</Text>
+          </Group>
 
-        <Card shadow="sm">
-          <form onSubmit={handleSubmit}>
-            <Stack spacing="md">
-              <TextInput
-                label="Habit Name"
-                placeholder="Enter a new habit"
-                value={habitName}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setHabitName(event.currentTarget.value)}
-                required
-              />
-              <Select
-                label="Category"
-                placeholder="Select a category"
-                value={category}
-                onChange={(val) => setCategory(val || '')}
-                data={CATEGORIES}
-                required
-                searchable={false}  // Disable searchable to prevent keyboard
-                clearable
-                styles={(theme) => ({
-                  dropdown: {
-                    maxHeight: '75vh', // Increased from 50vh to show more options
-                    overflowY: 'auto',
-                    WebkitOverflowScrolling: 'touch',
-                    padding: '8px 0',
-                    minWidth: '200px',
-                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
-                      maxHeight: '80vh', // Increased from 60vh to show more options
-                      position: 'fixed',
-                      left: '0 !important',
-                      right: '0 !important',
-                      bottom: '0',
-                      border: 'none',
-                      borderTopLeftRadius: theme.radius.lg, // Increased border radius
-                      borderTopRightRadius: theme.radius.lg,
-                      borderBottomLeftRadius: 0,
-                      borderBottomRightRadius: 0,
-                      margin: 0,
-                      width: '100%',
-                      boxShadow: '0 -4px 10px rgba(0,0,0,0.1)', // Enhanced shadow
-                      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
-                      zIndex: 1000 // Ensure it's above other elements
+          <Card shadow="sm">
+            <form onSubmit={handleSubmit}>
+              <Stack spacing="md">
+                <TextInput
+                  label="Habit Name"
+                  placeholder="Enter a new habit"
+                  value={habitName}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => setHabitName(event.currentTarget.value)}
+                  required
+                />
+                <Select
+                  label="Category"
+                  placeholder="Select a category"
+                  value={category}
+                  onChange={(val) => setCategory(val || '')}
+                  data={CATEGORIES}
+                  required
+                  searchable={false}  // Disable searchable to prevent keyboard
+                  clearable
+                  styles={(theme) => ({
+                    dropdown: {
+                      maxHeight: '75vh', // Increased from 50vh to show more options
+                      overflowY: 'auto',
+                      WebkitOverflowScrolling: 'touch',
+                      padding: '8px 0',
+                      minWidth: '200px',
+                      [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                        maxHeight: '80vh', // Increased from 60vh to show more options
+                        position: 'fixed',
+                        left: '0 !important',
+                        right: '0 !important',
+                        bottom: '0',
+                        border: 'none',
+                        borderTopLeftRadius: theme.radius.lg, // Increased border radius
+                        borderTopRightRadius: theme.radius.lg,
+                        borderBottomLeftRadius: 0,
+                        borderBottomRightRadius: 0,
+                        margin: 0,
+                        width: '100%',
+                        boxShadow: '0 -4px 10px rgba(0,0,0,0.1)', // Enhanced shadow
+                        backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+                        zIndex: 1000 // Ensure it's above other elements
+                      }
+                    },
+                    item: {
+                      padding: '12px 16px',
+                      [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                        padding: '16px', // Adjusted padding
+                        fontSize: '16px',
+                        minHeight: '48px', // Ensure consistent height
+                        display: 'flex',
+                        alignItems: 'center'
+                      }
+                    },
+                    itemsWrapper: {
+                      [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+                        padding: '8px 0'
+                      }
                     }
-                  },
-                  item: {
-                    padding: '12px 16px',
-                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
-                      padding: '16px', // Adjusted padding
-                      fontSize: '16px',
-                      minHeight: '48px', // Ensure consistent height
-                      display: 'flex',
-                      alignItems: 'center'
-                    }
-                  },
-                  itemsWrapper: {
-                    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
-                      padding: '8px 0'
-                    }
-                  }
-                })}
-              />
-              <Button 
-                type="submit" 
-                leftIcon={<IconPlus size={18} />}
-                color={themeColor}
-                fullWidth
-                loading={loading}
-              >
-                Add New Habit
-              </Button>
-            </Stack>
-          </form>
-        </Card>
+                  })}
+                />
+                <Button 
+                  type="submit" 
+                  leftIcon={<IconPlus size={18} />}
+                  color={themeColor}
+                  fullWidth
+                  loading={loading}
+                >
+                  Add New Habit
+                </Button>
+              </Stack>
+            </form>
+          </Card>
 
-        <HabitsList />
-      </Stack>
-    </Container>
+          <HabitsList />
+        </Stack>
+      </Container>
+    </PageTransition>
   );
 }

@@ -1,12 +1,13 @@
-import { Button, Stack, Text, Group } from '@mantine/core';
+import { Button, Stack, Typography } from '@mui/material';
 import { addHabit, getHabitLogs, logHabitCompletion } from '../lib/firestore';
 import { useUser } from '../contexts/UserContext';
 import { useState } from 'react';
-import { showNotification } from '@mantine/notifications';
+import { useSnackbar } from 'notistack';
 
 export function TestIndexManagement() {
   const { currentUser } = useUser();
   const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const runTest = async () => {
     setLoading(true);
@@ -28,19 +29,15 @@ export function TestIndexManagement() {
       startDate.setDate(startDate.getDate() - 7);
       const logs = await getHabitLogs(habit.id, startDate);
       
-      showNotification({
-        title: 'Test Complete',
-        message: `Found ${logs.length} logs. Check console for details.`,
-        color: 'green'
+      enqueueSnackbar(`Found ${logs.length} logs. Check console for details.`, {
+        variant: 'success'
       });
       
       console.log('Test Results:', { habit, logs });
     } catch (error) {
       console.error('Test failed:', error);
-      showNotification({
-        title: 'Test Failed',
-        message: 'Check console for error details',
-        color: 'red'
+      enqueueSnackbar('Test failed. Check console for error details', {
+        variant: 'error'
       });
     } finally {
       setLoading(false);
@@ -48,17 +45,17 @@ export function TestIndexManagement() {
   };
 
   return (
-    <Stack spacing="md">
-      <Text>Test Index Management</Text>
-      <Group>
-        <Button 
-          onClick={runTest} 
-          loading={loading}
-          color="blue"
-        >
-          Run Test
-        </Button>
-      </Group>
+    <Stack spacing={2}>
+      <Typography variant="h6">Test Index Management</Typography>
+      <Button 
+        onClick={runTest} 
+        disabled={loading}
+        variant="contained"
+        color="primary"
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        Run Test
+      </Button>
     </Stack>
   );
 }

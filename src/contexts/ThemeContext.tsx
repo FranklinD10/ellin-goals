@@ -1,27 +1,41 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
-import { ColorScheme } from '@mantine/core';
 import { useUser } from './UserContext';
 import { saveUserSettings } from '../lib/firestore';
 import { ThemeColorType, UserSettings } from '../types/user';
-import { debounce } from 'lodash';
-import { hasSettingsChanged, getLocalSettings, setLocalSettings } from '../utils/syncUtils';
+import { Theme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import { getLocalSettings, setLocalSettings, hasSettingsChanged } from '../utils/syncUtils';
+import { createMuiTheme } from '../theme/mui-theme';
 
 interface ThemeContextType {
-  colorScheme: ColorScheme;
+  colorScheme: 'light' | 'dark';
   themeColor: ThemeColorType;
-  toggleColorScheme: (value?: ColorScheme) => void;
+  toggleColorScheme: (value?: 'light' | 'dark') => void;
   setThemeColor: (color: ThemeColorType) => void;
   isSelected: (color: ThemeColorType) => boolean;
+  theme: Theme;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextType>({
+  colorScheme: 'light',
+  themeColor: 'red',
+  toggleColorScheme: () => {},
+  setThemeColor: () => {},
+  isSelected: () => false,
+  theme: createMuiTheme('light', 'red')
+});
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { userData, currentUser } = useUser();
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(getLocalSettings().theme as ColorScheme);
-  const [themeColor, setThemeColor] = useState<ThemeColorType>(getLocalSettings().themeColor as ThemeColorType);
+  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(
+    getLocalSettings().theme as 'light' | 'dark' || 'light'
+  );
+  const [themeColor, setThemeColor] = useState<ThemeColorType>(
+    getLocalSettings().themeColor as ThemeColorType || 'red'
+  );
   const [lastSyncedSettings, setLastSyncedSettings] = useState<UserSettings | null>(null);
   const syncTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const theme = createMuiTheme(colorScheme, themeColor);
 
   // Optimized Firestore sync
   const syncToFirestore = useCallback(async (settings: UserSettings) => {
@@ -32,7 +46,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setLastSyncedSettings(settings);
     } catch (error) {
       console.error('Failed to sync settings:', error);
-      // Revert to last known good settings if sync fails
       if (lastSyncedSettings) {
         setColorScheme(lastSyncedSettings.theme);
         setThemeColor(lastSyncedSettings.themeColor);
@@ -41,49 +54,41 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [currentUser, lastSyncedSettings]);
 
   const handleThemeChange = useCallback((newColor: ThemeColorType) => {
-    // Update local state immediately
     setThemeColor(newColor);
     setLocalSettings({ themeColor: newColor });
     
-    // Prepare settings for sync
     const newSettings = {
       theme: colorScheme,
       themeColor: newColor,
       notifications: userData?.settings?.notifications ?? true,
     };
     
-    // Only sync if there are actual changes
     if (hasSettingsChanged(lastSyncedSettings, newSettings)) {
       syncToFirestore(newSettings);
     }
   }, [colorScheme, userData, lastSyncedSettings, syncToFirestore]);
 
-  const handleColorScheme = useCallback((value?: ColorScheme) => {
+  const handleColorScheme = useCallback((value?: 'light' | 'dark') => {
     const newScheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
     
-    // Update local state immediately
     setColorScheme(newScheme);
     setLocalSettings({ theme: newScheme });
     
-    // Clear any pending sync
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
 
-    // Prepare settings for sync
     const newSettings = {
       theme: newScheme,
       themeColor,
       notifications: userData?.settings?.notifications ?? true,
     };
 
-    // Debounce the sync operation
     syncTimeoutRef.current = setTimeout(() => {
       syncToFirestore(newSettings);
     }, 1000);
   }, [colorScheme, themeColor, userData, syncToFirestore]);
 
-  // Initial sync from Firestore with optimization
   useEffect(() => {
     if (userData?.settings) {
       setColorScheme(userData.settings.theme);
@@ -96,19 +101,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [userData]);
 
+  // Update CSS variable for global theming
+  useEffect(() => {
+    document.documentElement.style.setProperty('--theme-color', theme.palette.primary.main);
+  }, [theme]);
+
   const isSelected = useCallback((color: ThemeColorType) => themeColor === color, [themeColor]);
 
+  const contextValue = {
+    colorScheme,
+    themeColor,
+    toggleColorScheme: handleColorScheme,
+    setThemeColor: handleThemeChange,
+    isSelected,
+    theme
+  };
+
   return (
-    <ThemeContext.Provider
-      value={{
-        colorScheme,
-        themeColor,
-        toggleColorScheme: handleColorScheme,
-        setThemeColor: handleThemeChange,
-        isSelected,
-      }}
-    >
-      {children}
+    <ThemeContext.Provider value={contextValue}>
+      <MuiThemeProvider theme={theme}>
+        {children}
+      </MuiThemeProvider>
     </ThemeContext.Provider>
   );
 }

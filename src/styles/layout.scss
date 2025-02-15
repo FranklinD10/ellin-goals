@@ -1,0 +1,27 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 60px; // Header height
+
+  &__content {
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    // Adjust for mobile safe areas
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
+  }
+
+  &__page {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}

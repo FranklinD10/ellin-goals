@@ -1,36 +1,26 @@
-import { ActionIcon, Tooltip } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
+import { Fab, Tooltip } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { themes } from '../utils/theme-constants';
 
 export default function FloatingActionButton() {
   const navigate = useNavigate();
-  const { themeColor } = useTheme();
+  const { theme } = useTheme();
 
   return (
-    <Tooltip label="Add New Habit">
-      <ActionIcon
-        color={themeColor}
-        variant="filled"
-        size="xl"
-        radius="xl"
+    <Tooltip title="Add New Habit" placement="left">
+      <Fab
+        color="primary"
         onClick={() => navigate('/manage')}
-        sx={(theme) => ({
+        sx={{
           position: 'fixed',
           right: 20,
           bottom: 80,
-          width: 56,
-          height: 56,
-          backgroundColor: themes[themeColor].color,
-          '&:hover': {
-            backgroundColor: theme.fn.darken(themes[themeColor].color, 0.1),
-          },
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-        })}
+          boxShadow: theme.shadows[4],
+        }}
       >
-        <IconPlus size={24} />
-      </ActionIcon>
+        <AddIcon />
+      </Fab>
     </Tooltip>
   );
 }

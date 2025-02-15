@@ -12,7 +12,7 @@ import {
   setDoc, 
   writeBatch, 
   onSnapshot, 
-  getDoc 
+  getDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
@@ -86,39 +86,53 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
 };
 
 export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
-  const todayStart = startOfDay(new Date());
-  const todayEnd = endOfDay(new Date());
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const todayEnd = endOfDay(now);
 
-  const primaryConstraints = [
-    where('user_id', '==', userId),
-    where('date', '>=', Timestamp.fromDate(todayStart)),
-    where('date', '<=', Timestamp.fromDate(todayEnd)),
-    where('deleted', '!=', true)
-  ];
-
-  // Simpler fallback query that doesn't require composite index
-  const fallbackConstraints = [
-    where('user_id', '==', userId)
-  ];
+  // First, get local unsynced logs
+  const unsyncedLogs = Object.entries(localStorage)
+    .filter(([key]) => key.startsWith('habit_log_'))
+    .map(([_, value]) => JSON.parse(value));
 
   try {
-    return await ClientIndexManager.executeQueryWithFallback<HabitLog>(
+    const firebaseLogs = await ClientIndexManager.executeQueryWithFallback<HabitLog>(
       'habit_logs',
-      primaryConstraints,
-      fallbackConstraints,
+      [
+        where('user_id', '==', userId),
+        where('date', '>=', Timestamp.fromDate(todayStart)),
+        where('date', '<=', Timestamp.fromDate(todayEnd)),
+        where('deleted', '!=', true)
+      ],
+      [where('user_id', '==', userId)],
       (log) => {
         if (!log.date) return false;
         const logDate = (log.date as Timestamp).toDate();
-        return (
-          logDate >= todayStart &&
-          logDate <= todayEnd &&
-          !log.deleted
-        );
+        return logDate >= todayStart && 
+               logDate <= todayEnd && 
+               !log.deleted;
       }
     );
+
+    // Merge Firebase logs with unsynced local logs, preferring local versions
+    const allLogs = [...firebaseLogs];
+    unsyncedLogs.forEach(localLog => {
+      const index = allLogs.findIndex(log => 
+        log.habit_id === localLog.habit_id && 
+        log.date.seconds === localLog.date.seconds
+      );
+      if (index >= 0) {
+        allLogs[index] = localLog;
+      } else {
+        allLogs.push(localLog);
+      }
+    });
+
+    return allLogs;
   } catch (error) {
     console.error('Error fetching logs:', error);
-    return [];
+    // Return unsynced logs if Firebase fetch fails
+    return unsyncedLogs;
   }
 };
 
@@ -157,22 +171,33 @@ export const logHabitCompletion = async (
   date: Date, 
   completed: boolean
 ) => {
-  const todayStart = startOfDay(date);
-  const docId = `${habitId}_${todayStart.toISOString().split('T')[0]}_${userId}`;
+  const localDate = startOfDay(date);
+  const docId = `${habitId}_${localDate.toISOString().split('T')[0]}_${userId}`;
   
   const logData = {
     habit_id: habitId,
     user_id: userId,
-    date: Timestamp.fromDate(todayStart),
+    date: Timestamp.fromDate(localDate),
     completed,
-    updatedAt: Timestamp.now()
+    updatedAt: Timestamp.now(),
+    synced: false // Add sync status field
   };
 
-  console.debug('Saving habit log:', { docId, logData });
-  
   try {
-    await setDoc(doc(db, 'habit_logs', docId), logData, { merge: true });
-    return true;
+    // First, write to local storage as backup
+    const localKey = `habit_log_${docId}`;
+    localStorage.setItem(localKey, JSON.stringify(logData));
+
+    // Then attempt Firestore write
+    await setDoc(doc(db, 'habit_logs', docId), {
+      ...logData,
+      synced: true
+    }, { merge: true });
+
+    // Clear local backup after successful sync
+    localStorage.removeItem(localKey);
+    
+    return { success: true, docId, logData };
   } catch (error) {
     console.error('Error logging habit:', error);
     throw error;
