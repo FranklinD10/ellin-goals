@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getFunctions } from 'firebase/functions';
@@ -32,7 +32,11 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
 
@@ -65,23 +69,5 @@ initAnalytics();
 // Set persistence
 setPersistence(auth, browserLocalPersistence)
   .catch(console.warn);
-
-// Enable offline persistence
-try {
-  enableIndexedDbPersistence(db, {
-    // Removed cacheSizeBytes as it does not exist in PersistenceSettings
-  }).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Browser doesn\'t support persistence');
-    }
-  });
-} catch (err) {
-  console.warn('Error enabling persistence:', err);
-}
-
-// Modify Firestore settings for better offline support
-// Removed settings call as it does not exist on Firestore
 
 export default db;
