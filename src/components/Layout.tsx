@@ -192,8 +192,8 @@ export default function Layout({ children }: LayoutProps) {
           }}
         >
           <NavLink to="/" icon="📊" label="Today" />
-          <NavLink to="/analytics" icon="📈" label="Stats" />
           <NavLink to="/manage" icon="🎯" label="Habits" />
+          <NavLink to="/analytics" icon="📈" label="Stats" />
           <NavLink to="/settings" icon="⚙️" label="Settings" />
         </Stack>
       </BottomNavigation>

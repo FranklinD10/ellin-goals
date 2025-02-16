@@ -2,7 +2,22 @@
 
 ## 🚀 Major Version Update
 
-[Your major changes description here]
+### New Features
+- Added RadarChart and AreaChart to the Analytics page for better data visualization.
+- Improved layout and padding for charts on the Analytics page.
+- Centered the spin loader on the Analytics page.
+- Reordered navigation links to have Habits before Stats.
+
+### Bug Fixes
+- Fixed overlapping text issue in the category field on the Manage Habits page.
+
+### Performance Improvements
+- Optimized chart rendering and layout for better performance.
+
+### Technical Improvements
+- Updated Firebase configuration to use `FirestoreSettings.cache` instead of `enableIndexedDbPersistence`.
+- Improved TypeScript type definitions and code structure.
+- Migrated from Mantine to MUI for a more consistent and modern UI experience.
 
 # ElLin Goals v1.0.1 Release Notes
 

@@ -156,7 +156,7 @@ export default function Settings() {
 
               <Stack spacing={1} pl={6.5}>
                 <Typography variant="body2">
-                  Created with ❤️ by Franklin
+                  Created by Franklin with 💖
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Version {import.meta.env.VITE_APP_VERSION || '2.0.0'}
