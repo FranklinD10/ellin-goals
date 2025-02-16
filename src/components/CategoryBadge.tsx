@@ -1,39 +1,16 @@
 import { Chip } from '@mui/material';
+import { getCategoryDetails } from '../utils/category-constants';
 
 interface CategoryBadgeProps {
   category: string;
 }
 
 export default function CategoryBadge({ category }: CategoryBadgeProps) {
-  const getEmoji = () => {
-    switch (category) {
-      case 'health':
-        return '🏃';
-      case 'productivity':
-        return '💼';
-      case 'personal':
-        return '🎯';
-      default:
-        return '📝';
-    }
-  };
-
-  const getLabel = () => {
-    switch (category) {
-      case 'health':
-        return 'Health & Fitness';
-      case 'productivity':
-        return 'Productivity';
-      case 'personal':
-        return 'Personal Growth';
-      default:
-        return category;
-    }
-  };
+  const { emoji, label } = getCategoryDetails(category);
 
   return (
     <Chip
-      label={`${getEmoji()} ${getLabel()}`}
+      label={`${emoji} ${label}`}
       size="small"
       sx={{
         borderRadius: 'full',

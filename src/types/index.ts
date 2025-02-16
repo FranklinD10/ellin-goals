@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
+import { ThemeColorType } from './user';
 
 export type UserType = 'El' | 'Lin';
 
@@ -52,6 +53,6 @@ export interface DailyCheck {
 
 export interface UserSettings {
   theme: 'light' | 'dark';
-  themeColor: 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
+  themeColor: ThemeColorType;
   notifications: boolean;
 }

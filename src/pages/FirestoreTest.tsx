@@ -1,16 +1,24 @@
 import { Container, Typography, CircularProgress, Alert } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { getUserDoc } from '../lib/firestore';
+import { getUserData } from '../lib/firestore';
+import { useUser } from '../contexts/UserContext';
 
 export default function FirestoreTest() {
+  const { currentUser } = useUser();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!currentUser) {
+        setError('No user logged in');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const doc = await getUserDoc('test');
+        const doc = await getUserData(currentUser);
         setData(doc);
       } catch (err) {
         setError('Failed to fetch data');
@@ -19,7 +27,7 @@ export default function FirestoreTest() {
       }
     };
     fetchData();
-  }, []);
+  }, [currentUser]);
 
   if (loading) {
     return <CircularProgress />;

@@ -1,4 +1,16 @@
-export type ThemeColorType = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
+export type ThemeColorType = 
+  | 'red' 
+  | 'pink' 
+  | 'purple' 
+  | 'blue' 
+  | 'green' 
+  | 'yellow'
+  | 'cyan'
+  | 'teal'
+  | 'indigo'
+  | 'orange'
+  | 'deepPurple'
+  | 'blueGrey';
 
 export interface UserSettings {
   theme: 'light' | 'dark';

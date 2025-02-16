@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Snackbar, Alert, AlertTitle, AlertColor } from '@mui/material';
+import { useTheme } from './ThemeContext';
 
 interface NotificationOptions {
   title?: string;
@@ -19,6 +20,7 @@ const NotificationContext = createContext<NotificationContextType>({
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notification, setNotification] = useState<NotificationOptions | null>(null);
   const [open, setOpen] = useState(false);
+  const { theme } = useTheme();
 
   const showNotification = (options: NotificationOptions) => {
     setNotification(options);
@@ -38,10 +40,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         onClose={handleClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         sx={{
-          // Add padding for iOS safe area at the top
           paddingTop: 'env(safe-area-inset-top)',
           '& .MuiAlert-root': {
-            marginTop: 'env(safe-area-inset-top)' // Ensure first notification respects safe area
+            marginTop: 'env(safe-area-inset-top)',
           }
         }}
       >
@@ -49,7 +50,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           onClose={handleClose}
           severity={notification?.color || 'success'}
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{
+            width: '100%',
+            '&.MuiAlert-standardSuccess, &.MuiAlert-filledSuccess': {
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+            },
+            '& .MuiAlert-icon': {
+              color: 'inherit'
+            }
+          }}
         >
           {notification?.title && (
             <AlertTitle>{notification.title}</AlertTitle>

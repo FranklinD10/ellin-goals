@@ -11,18 +11,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useHabits } from '../hooks/useHabits';
 import { PageTransition } from '../components/PageTransition';
 import { useNotification } from '../contexts/NotificationContext';
-
-const CATEGORIES = [
-  { value: 'health', label: '🏃 Health & Fitness' },
-  { value: 'productivity', label: '💼 Productivity' },
-  { value: 'personal', label: '🎯 Personal Growth' },
-  { value: 'mindfulness', label: '🧘 Mindfulness' },
-  { value: 'learning', label: '📚 Learning' },
-  { value: 'social', label: '👥 Social' },
-  { value: 'creative', label: '🎨 Creative' },
-  { value: 'finance', label: '💰 Finance' },
-  { value: 'spiritual', label: '📖 Spiritual' }
-];
+import { CATEGORIES } from '../utils/category-constants';
 
 function HabitsList() {
   const { currentUser } = useUser();
@@ -168,9 +157,9 @@ export default function Manage() {
                   <MenuItem value="" disabled>
                     <Typography color="text.secondary">Select a category</Typography>
                   </MenuItem>
-                  {CATEGORIES.map((category) => (
-                    <MenuItem key={category.value} value={category.value}>
-                      {category.label}
+                  {CATEGORIES.map((cat) => (
+                    <MenuItem key={cat.value} value={cat.value}>
+                      {cat.emoji} {cat.label}
                     </MenuItem>
                   ))}
                 </TextField>

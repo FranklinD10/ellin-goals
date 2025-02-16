@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
   const optimisticUpdates = useRef(new Map<string, boolean>()).current;
-  const showNotification = useNotification();
+  const { showNotification } = useNotification();  // Fix: Destructure showNotification from the context
 
   const loadData = useCallback(async () => {
     if (isTransitioning) return;
@@ -128,8 +128,8 @@ export default function Dashboard() {
       
       showNotification({
         title: 'Error',
-        message: 'Failed to update habit. Please try again.',
-        color: 'red'
+        message: 'Failed to update habit completion',
+        color: 'error'  // Changed from 'red' to 'error' to match AlertColor type
       });
       
       await loadData();
@@ -183,14 +183,19 @@ export default function Dashboard() {
           })}
         </Typography>
 
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
+        <Grid container spacing={2} sx={{ mb: 2, mx: 0 }}>
+          <Grid item xs={6} sx={{ pl: '0 !important' }}>
             <StatsCard 
               title="Completion Rate" 
               value={completionRate} 
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} sx={{ 
+            pr: '0 !important',
+            '& .MuiCard-root': {
+              marginRight: '16px'
+            }
+          }}>
             <StatsCard 
               title="Remaining Habits" 
               value={habits.length} 

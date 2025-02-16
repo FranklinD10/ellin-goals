@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Dialog, DialogTitle, List, ListItem, ListItemText, Avatar, Stack } from '@mui/material';
 import { UserType, UserData } from '../types';
 import { getUserData } from '../lib/firestore';
 import { useNotification } from './NotificationContext';
+import { getLastActiveUser, setLastActiveUser } from '../utils/userStorage';
+import { useTheme } from './ThemeContext';
+import { themes } from '../utils/theme-constants';
 
 interface UserContextType {
   currentUser: UserType | null;
@@ -17,7 +20,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showUserSelect, setShowUserSelect] = useState(false);
   const { showNotification } = useNotification();
+  const { themeColor } = useTheme();
+
+  const userDetails: Record<UserType, { color: string; avatar: string }> = {
+    El: { color: themes[themeColor]?.color || themes.pink.color, avatar: '👩' },
+    Lin: { color: themes[themeColor]?.color || themes.blue.color, avatar: '👨' }
+  };
+
+  useEffect(() => {
+    const lastUser = getLastActiveUser();
+    if (lastUser && (lastUser === 'El' || lastUser === 'Lin')) {
+      handleUserChange(lastUser as UserType);
+    } else {
+      setShowUserSelect(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -45,6 +64,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const handleUserChange = (user: UserType | null) => {
     setIsTransitioning(true);
     setCurrentUser(user);
+    if (user) {
+      setLastActiveUser(user);
+    }
+    setShowUserSelect(false);
     setTimeout(() => setIsTransitioning(false), 300);
   };
 
@@ -57,6 +80,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isTransitioning 
       }}
     >
+      <Dialog open={showUserSelect} disableEscapeKeyDown>
+        <DialogTitle>Select User</DialogTitle>
+        <List sx={{ pt: 0 }}>
+          {Object.entries(userDetails).map(([user, details]) => (
+            <ListItem 
+              key={user}
+              onClick={() => handleUserChange(user as UserType)}
+              sx={{ cursor: 'pointer' }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar sx={{ bgcolor: details.color }}>
+                  {details.avatar}
+                </Avatar>
+                <ListItemText primary={user} />
+              </Stack>
+            </ListItem>
+          ))}
+        </List>
+      </Dialog>
       <Box sx={{ position: 'relative', minHeight: '100vh' }}>
         {isTransitioning && (
           <Box

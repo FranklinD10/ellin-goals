@@ -1,3 +1,9 @@
+# ElLin Goals v2.0.0 Release Notes
+
+## 🚀 Major Version Update
+
+[Your major changes description here]
+
 # ElLin Goals v1.0.1 Release Notes
 
 ## 🐛 Bug Fixes

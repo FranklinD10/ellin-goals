@@ -5,23 +5,17 @@ import { useTheme } from '../contexts/ThemeContext';
 import UserSwitcher from './UserSwitcher';
 import { useUser } from '../contexts/UserContext';
 import { saveUserSettings } from '../lib/firestore';
-
-const themes = {
-  red: { color: '#FF4B4B', label: 'Red' },
-  pink: { color: '#FF69B4', label: 'Pink' },
-  purple: { color: '#9C27B0', label: 'Purple' },
-  blue: { color: '#2196F3', label: 'Blue' },
-  green: { color: '#4CAF50', label: 'Green' },
-  yellow: { color: '#FFC107', label: 'Yellow' },
-} as const;
+import { themes } from '../utils/theme-constants';
+import { ThemeColorType } from '../types/user';
 
 export default function ThemeSelector() {
   const { userData, currentUser } = useUser();
-  const { colorScheme, toggleColorScheme } = useTheme();
+  const { colorScheme, toggleColorScheme, setThemeColor, isSelected } = useTheme();
 
-  const handleThemeChange = async (color: keyof typeof themes) => {
+  const handleThemeChange = async (color: ThemeColorType) => {
     if (!currentUser) return;
-
+    setThemeColor(color);
+    
     const settings = {
       theme: userData?.settings?.theme || 'light',
       themeColor: color,
@@ -33,13 +27,28 @@ export default function ThemeSelector() {
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        {Object.entries(themes).map(([key, { color, label }]) => (
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', maxWidth: '300px' }}>
+        {(Object.entries(themes) as [ThemeColorType, { color: string; label: string }][]).map(([key, { color, label }]) => (
           <Tooltip key={key} title={label}>
             <IconButton
-              sx={{ backgroundColor: color }}
-              onClick={() => handleThemeChange(key as keyof typeof themes)}
-              color={userData?.settings?.themeColor === key ? 'primary' : 'default'}
+              sx={{ 
+                backgroundColor: color,
+                border: isSelected(key) ? `3px solid ${themes[key].color}` : '3px solid transparent',
+                transform: isSelected(key) ? 'scale(1.1)' : 'scale(1)',
+                transition: 'all 0.2s ease',
+                minWidth: 32,
+                minHeight: 32,
+                width: 32,
+                height: 32,
+                '&:hover': {
+                  backgroundColor: color,
+                  transform: 'scale(1.1)',
+                },
+                '&:active': {
+                  transform: 'scale(0.95)',
+                },
+              }}
+              onClick={() => handleThemeChange(key)}
             />
           </Tooltip>
         ))}

@@ -36,19 +36,25 @@ const ResponsiveContainer = styled('div')({
 });
 
 const BottomNavigation = styled(Box)(({ theme }) => ({
-  paddingBottom: 'env(safe-area-inset-bottom)',
   position: 'fixed',
   bottom: 0,
   left: 0,
   right: 0,
   backgroundColor: theme.palette.background.paper,
   borderTop: `1px solid ${theme.palette.divider}`,
-  zIndex: 100,
+  zIndex: 1200,
+  height: 56,
+  paddingBottom: 'calc(env(safe-area-inset-bottom))',
+  '& .MuiTypography-caption': {
+    marginTop: '4px'  // Space between icon and text
+  }
 }));
 
 const ContentContainer = styled(ResponsiveContainer)({
-  paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
+  paddingBottom: 'calc(56px + env(safe-area-inset-bottom))', // Just nav height + safe area
   WebkitOverflowScrolling: 'touch',
+  position: 'relative',
+  zIndex: 1
 });
 
 const SwipeableContainer = styled(ContentContainer)({
@@ -63,10 +69,18 @@ const NavLinkStyled = styled(Link, {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  justifyContent: 'center',
   textDecoration: 'none',
   color: active ? color : theme.palette.text.secondary,
   flex: 1,
   padding: '8px 0',
+  height: '100%',
+  '& .MuiTypography-h6': {
+    marginBottom: '2px'  // Space between icon and text
+  },
+  '& .MuiTypography-caption': {
+    marginBottom: '4px'  // Space between text and bottom
+  }
 }));
 
 function NavLink({ to, icon, label }: { to: string; icon: string; label: string }) {
@@ -122,21 +136,34 @@ export default function Layout({ children }: LayoutProps) {
           borderColor: 'divider',
         }}
       >
-        <Container maxWidth="sm" sx={{ px: 2, height: 64 }}>
+        <Container maxWidth={false} sx={{ px: 2, height: 64 }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ height: '100%' }}
+            sx={{ height: '100%', maxWidth: 800, mx: 'auto' }}
           >
-            <Typography variant="h6" fontWeight={700}>ElLin Goals</Typography>
+            <Typography 
+              variant="h6" 
+              fontWeight={700} 
+              sx={{ 
+                flexShrink: 0,
+                color: 'text.primary' // Ensure text is visible in both modes
+              }}
+            >
+              ElLin Goals
+            </Typography>
             <Stack direction="row" spacing={1} alignItems="center">
               {!isOnline && (
                 <Typography variant="body2" color="warning.main">Offline Mode</Typography>
               )}
               <IconButton
                 onClick={handleToggleColorScheme}
-                color="inherit"
+                sx={{ 
+                  color: 'text.primary', // Ensure icon is visible in both modes
+                  border: 1,
+                  borderColor: 'divider'
+                }}
                 size="large"
               >
                 {colorScheme === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -152,11 +179,17 @@ export default function Layout({ children }: LayoutProps) {
         {children}
         <Outlet />
       </SwipeableContainer>
+      
       <BottomNavigation>
         <Stack
           direction="row"
           justifyContent="center"
-          sx={{ width: '100%' }}
+          alignItems="center"
+          sx={{ 
+            width: '100%', 
+            height: '100%',
+            pb: 'env(safe-area-inset-bottom)'
+          }}
         >
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/analytics" icon="📈" label="Stats" />

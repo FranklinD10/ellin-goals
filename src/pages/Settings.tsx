@@ -1,12 +1,15 @@
-import { Box, Paper, Stack, Typography, ToggleButtonGroup, ToggleButton, IconButton, Tooltip } from '@mui/material';
+import { Box, Paper, Stack, Typography, ToggleButtonGroup, ToggleButton, IconButton, Tooltip, Divider, Grid } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../contexts/ThemeContext';
 import PaletteIcon from '@mui/icons-material/Palette';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import InfoIcon from '@mui/icons-material/Info';
 import { memo } from 'react';
 import UpdatesPaper from '../components/UpdatesPaper';
 import { PageTransition } from '../components/PageTransition';
+import { themes } from '../utils/theme-constants';
+import { ThemeColorType } from '../types/user';
 
 const TouchFriendlyIconButton = styled(IconButton)(({ theme }) => ({
   minWidth: 48,
@@ -30,6 +33,9 @@ const ColorButton = styled(TouchFriendlyIconButton, {
   border: selected ? `3px solid ${theme.palette.primary.main}` : '3px solid transparent',
   transform: selected ? 'scale(1.1)' : 'scale(1)',
   transition: 'all 0.2s ease',
+  width: 48,
+  height: 48,
+  padding: 0,
   '&:active': {
     transform: 'scale(0.95)',
   },
@@ -46,17 +52,6 @@ const SettingsContainer = styled(Box)(({ theme }) => ({
   paddingTop: 'env(safe-area-inset-top)',
   paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
 }));
-
-type ThemeKey = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
-
-const themes: Record<ThemeKey, { color: string; label: string }> = {
-  red: { color: '#FF4B4B', label: 'Red' },
-  pink: { color: '#FF69B4', label: 'Pink' },
-  purple: { color: '#9C27B0', label: 'Purple' },
-  blue: { color: '#2196F3', label: 'Blue' },
-  green: { color: '#4CAF50', label: 'Green' },
-  yellow: { color: '#FFC107', label: 'Yellow' },
-};
 
 interface ThemeButtonProps {
   color: string;
@@ -128,18 +123,44 @@ export default function Settings() {
                 </Stack>
                 
                 <Box pl={6.5}>
-                  <Stack direction="row" spacing={1.5}>
-                    {(Object.keys(themes) as ThemeKey[]).map((key) => (
-                      <ThemeButton
-                        key={key}
-                        color={themes[key].color}
-                        label={themes[key].label}
-                        onClick={() => setThemeColor(key)}
-                        selected={isSelected(key)}
-                      />
+                  <Grid container spacing={1.5} sx={{ maxWidth: 500 }}>
+                    {Object.entries(themes).map(([key, { color, label }]) => (
+                      <Grid item key={key}>
+                        <ThemeButton
+                          color={color}
+                          label={label}
+                          onClick={() => setThemeColor(key as ThemeColorType)}
+                          selected={isSelected(key as ThemeColorType)}
+                        />
+                      </Grid>
                     ))}
-                  </Stack>
+                  </Grid>
                 </Box>
+              </Stack>
+            </Stack>
+          </Paper>
+
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <IconButton size="large" color="primary">
+                  <InfoIcon />
+                </IconButton>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={500}>About</Typography>
+                  <Typography variant="body2" color="text.secondary">App information</Typography>
+                </Box>
+              </Stack>
+
+              <Divider />
+
+              <Stack spacing={1} pl={6.5}>
+                <Typography variant="body2">
+                  Created with ❤️ by Franklin
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Version {import.meta.env.VITE_APP_VERSION || '2.0.0'}
+                </Typography>
               </Stack>
             </Stack>
           </Paper>

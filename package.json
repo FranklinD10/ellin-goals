@@ -1,13 +1,16 @@
 {
   "name": "ellin-goals",
   "private": true,
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "netlify:deploy": "netlify deploy --prod"
+    "netlify:deploy": "netlify deploy --prod",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -34,6 +37,9 @@
     "styled-components": "^6.1.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/date-fns": "^2.5.3",
     "@types/lodash": "^4.17.15",
     "@types/react": "^18.0.28",
@@ -41,8 +47,10 @@
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "@vitejs/plugin-react": "^4.0.0",
+    "jsdom": "^26.0.0",
     "typescript": "^5.0.2",
     "vite": "^4.0.0",
-    "vite-plugin-pwa": "^0.16.0"
+    "vite-plugin-pwa": "^0.16.0",
+    "vitest": "^3.0.5"
   }
 }

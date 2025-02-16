@@ -3,16 +3,27 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useUser } from '../contexts/UserContext';
 import { UserType } from '../types';
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import { themes } from '../utils/theme-constants';
 
 export default function UserSwitcher() {
   const { currentUser, setCurrentUser } = useUser();
+  const { themeColor } = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const userDetails: Record<UserType, { color: string; avatar: string }> = {
-    El: { color: 'pink', avatar: '👩' },
-    Lin: { color: 'blue', avatar: '👨' }
+    El: { 
+      color: themes[themeColor]?.color || themes.pink.color, 
+      avatar: '👩' 
+    },
+    Lin: { 
+      color: themes[themeColor]?.color || themes.blue.color, 
+      avatar: '👨' 
+    }
   };
+
+  if (!currentUser) return null;
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -37,16 +48,31 @@ export default function UserSwitcher() {
           borderColor: 'divider',
           borderRadius: 2,
           px: 1,
+          color: 'text.primary', // Ensure text visibility in both modes
         }}
       >
         <Stack direction="row" spacing={1} alignItems="center">
-          <Avatar sx={{ width: 24, height: 24, fontSize: '1rem' }}>
-            {userDetails[currentUser!]?.avatar}
+          <Avatar 
+            sx={{ 
+              width: 24, 
+              height: 24, 
+              fontSize: '1rem',
+              bgcolor: userDetails[currentUser].color
+            }}
+          >
+            {userDetails[currentUser].avatar}
           </Avatar>
-          <Typography variant="body2" fontWeight={500}>
+          <Typography 
+            variant="body2" 
+            fontWeight={500}
+            sx={{ color: 'text.primary' }} // Ensure text visibility
+          >
             {currentUser}
           </Typography>
-          <KeyboardArrowDownIcon fontSize="small" />
+          <KeyboardArrowDownIcon 
+            fontSize="small"
+            sx={{ color: 'text.primary' }} // Ensure icon visibility
+          />
         </Stack>
       </IconButton>
       
@@ -71,7 +97,16 @@ export default function UserSwitcher() {
             sx={{ minWidth: 150 }}
           >
             <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>{details.avatar}</Typography>
+              <Avatar 
+                sx={{ 
+                  width: 24, 
+                  height: 24,
+                  fontSize: '1rem',
+                  bgcolor: details.color
+                }}
+              >
+                {details.avatar}
+              </Avatar>
               <Typography>{user}</Typography>
             </Stack>
           </MenuItem>

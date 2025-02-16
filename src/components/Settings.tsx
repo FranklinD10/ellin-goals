@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { 
   Box, 
   Paper, 
@@ -14,18 +14,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import UpdatesPaper from './UpdatesPaper';
 import Layout from './Layout';
 import { useNotification } from '../contexts/NotificationContext';
-
-// Define types if not imported from a common module:
-type ThemeKey = 'red' | 'pink' | 'purple' | 'blue' | 'green' | 'yellow';
-
-const themes: Record<ThemeKey, { color: string; label: string }> = {
-  red: { color: '#FF4B4B', label: 'Red' },
-  pink: { color: '#FF69B4', label: 'Pink' },
-  purple: { color: '#9C27B0', label: 'Purple' },
-  blue: { color: '#2196F3', label: 'Blue' },
-  green: { color: '#4CAF50', label: 'Green' },
-  yellow: { color: '#FFC107', label: 'Yellow' }
-};
+import { themes } from '../utils/theme-constants';
+import { ThemeColorType } from '../types/user';
 
 interface ThemeButtonProps {
   color: string;
@@ -80,14 +70,14 @@ export default function Settings() {
         <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
           <Stack spacing={2}>
             <Typography fontWeight={500}>Theme Color</Typography>
-            <Stack direction="row" spacing={1.5}>
-              {(Object.keys(themes) as ThemeKey[]).map((key) => (
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" gap={1}>
+              {Object.entries(themes).map(([key, { color, label }]) => (
                 <ThemeButton
                   key={key}
-                  color={themes[key].color}
-                  label={themes[key].label}
-                  onClick={() => setThemeColor(key)}
-                  isSelected={isSelected(key)}
+                  color={color}
+                  label={label}
+                  onClick={() => setThemeColor(key as ThemeColorType)}
+                  isSelected={isSelected(key as ThemeColorType)}
                 />
               ))}
             </Stack>
