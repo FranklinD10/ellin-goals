@@ -7,6 +7,7 @@
 - Improved layout and padding for charts on the Analytics page.
 - Centered the spin loader on the Analytics page.
 - Reordered navigation links to have Habits before Stats.
+- Added more color options for theme customization.
 
 ### Bug Fixes
 - Fixed overlapping text issue in the category field on the Manage Habits page.
