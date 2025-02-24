@@ -174,7 +174,20 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      <Stack spacing={2} sx={{ p: 2 }}>
+      <Stack spacing={2} sx={{ 
+        p: 2,
+        // Ensure content respects safe areas and theme
+        bgcolor: 'background.default',
+        minHeight: '100%',
+        '@supports (-webkit-touch-callout: none)': {
+          // iOS-specific adjustments
+          minHeight: '-webkit-fill-available',
+          pt: `calc(${theme.spacing(2)} + env(safe-area-inset-top))`,
+          pb: `calc(${theme.spacing(2)} + env(safe-area-inset-bottom))`,
+          pl: `calc(${theme.spacing(2)} + env(safe-area-inset-left))`,
+          pr: `calc(${theme.spacing(2)} + env(safe-area-inset-right))`,
+        }
+      }}>
         <Typography variant="h5" color="text.secondary">
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long',

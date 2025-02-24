@@ -13,7 +13,7 @@ interface NotificationContextType {
   showNotification: (options: NotificationOptions) => void;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
+export const NotificationContext = createContext<NotificationContextType>({
   showNotification: () => {},
 });
 
@@ -36,30 +36,29 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       {children}
       <Snackbar
         open={open}
-        autoHideDuration={notification?.autoHideDuration || 4000}
+        autoHideDuration={6000}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         sx={{
-          paddingTop: 'env(safe-area-inset-top)',
+          '& .MuiSnackbar-root': {
+            top: 'env(safe-area-inset-top)',
+          },
           '& .MuiAlert-root': {
-            marginTop: 'env(safe-area-inset-top)',
+            mt: 'env(safe-area-inset-top)',
+            ml: 'env(safe-area-inset-left)',
+            mr: 'env(safe-area-inset-right)',
+            bgcolor: 'background.paper',
+            width: 'auto',
+            maxWidth: 'calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px)',
           }
         }}
       >
         <Alert
+          elevation={6}
+          variant="filled"
           onClose={handleClose}
           severity={notification?.color || 'success'}
-          variant="filled"
-          sx={{
-            width: '100%',
-            '&.MuiAlert-standardSuccess, &.MuiAlert-filledSuccess': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-            },
-            '& .MuiAlert-icon': {
-              color: 'inherit'
-            }
-          }}
+          sx={{ width: '100%' }}
         >
           {notification?.title && (
             <AlertTitle>{notification.title}</AlertTitle>

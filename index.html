@@ -52,7 +52,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-touch-fullscreen" content="yes" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1A1B1E" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="ElLin Goals - Habit tracking for El and Lin" />
@@ -61,15 +62,29 @@
     <link rel="mask-icon" href="/favicon.svg" color="#FF4B4B" />
     <title>ElLin Goals</title>
     <style>
-      /* Prevent pull-to-refresh and other browser gestures */
+      :root {
+        --sat: env(safe-area-inset-top);
+        --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+        --sar: env(safe-area-inset-right);
+      }
+
+      /* Enhanced body styles for iOS PWA */
       body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y pinch-zoom;
-        position: relative; /* changed from fixed */
+        position: relative;
         width: 100%;
-        height: auto; /* changed from 100% */
-        overflow: auto; /* changed from hidden */
+        height: 100vh;
+        height: -webkit-fill-available;
+        overflow: auto;
+        margin: 0;
+        /* Prevent pull-to-refresh on iOS */
+        overscroll-behavior-y: none;
+        /* Disable rubber band effect */
+        position: fixed;
+        width: 100%;
       }
       
       #root {
@@ -77,6 +92,9 @@
         height: 100%;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        /* Respect safe areas */
+        padding: var(--sat) var(--sar) var(--sab) var(--sal);
+        box-sizing: border-box;
       }
 
       #initial-loader {
@@ -95,6 +113,8 @@
         transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
         visibility: visible;
         z-index: 9999;
+        /* Add safe area padding */
+        padding: var(--sat) var(--sar) var(--sab) var(--sal);
       }
 
       .loader-spinner {

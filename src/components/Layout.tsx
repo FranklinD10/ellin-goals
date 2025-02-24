@@ -17,8 +17,8 @@ interface LayoutProps {
 
 const AppContainer = styled(Container)(({ theme }) => ({
   padding: 16,
-  paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
-  paddingBottom: 'calc(env(safe-area-inset-bottom) + 60px)',
+  paddingTop: `calc(env(safe-area-inset-top) + ${theme.spacing(2)})`,
+  paddingBottom: `calc(env(safe-area-inset-bottom) + ${theme.spacing(7.5)})`,
   margin: '0 auto',
   maxWidth: 800,
   WebkitOverflowScrolling: 'touch',
@@ -27,6 +27,10 @@ const AppContainer = styled(Container)(({ theme }) => ({
   flexDirection: 'column',
   justifyContent: 'flex-start',
   position: 'relative',
+  '@supports (-webkit-touch-callout: none)': {
+    // iOS-specific fix for momentum scrolling
+    height: '-webkit-fill-available',
+  },
 }));
 
 const ResponsiveContainer = styled('div')({
@@ -44,10 +48,14 @@ const BottomNavigation = styled(Box)(({ theme }) => ({
   borderTop: `1px solid ${theme.palette.divider}`,
   zIndex: 1200,
   height: 56,
-  paddingBottom: 'calc(env(safe-area-inset-bottom))',
+  paddingBottom: 'env(safe-area-inset-bottom)',
   '& .MuiTypography-caption': {
     marginTop: '4px'  // Space between icon and text
-  }
+  },
+  '@supports (-webkit-touch-callout: none)': {
+    // iOS-specific fix for bottom navigation
+    height: 'calc(56px + env(safe-area-inset-bottom))',
+  },
 }));
 
 const ContentContainer = styled(ResponsiveContainer)({
@@ -116,6 +124,18 @@ export default function Layout({ children }: LayoutProps) {
   const isOnline = useOnlineStatus();
   const gestureHandlers = useNavigationGestures();
 
+  // Update CSS variables when theme changes
+  React.useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--safe-area-top-color',
+      muiTheme.palette.background.paper
+    );
+    document.documentElement.style.setProperty(
+      '--safe-area-bottom-color',
+      muiTheme.palette.background.paper
+    );
+  }, [muiTheme.palette.background.paper]);
+
   const handleToggleColorScheme = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     toggleColorScheme();
@@ -125,7 +145,16 @@ export default function Layout({ children }: LayoutProps) {
     <Box sx={{ 
       bgcolor: 'background.default',
       minHeight: '100vh',
-      paddingTop: 'calc(64px + env(safe-area-inset-top))'
+      minHeight: '-webkit-fill-available',
+      display: 'flex',
+      flexDirection: 'column',
+      paddingTop: `calc(64px + env(safe-area-inset-top))`,
+      '@supports (-webkit-touch-callout: none)': {
+        // iOS-specific padding adjustments
+        paddingTop: `calc(64px + env(safe-area-inset-top))`,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+      }
     }}>
       <AppBar 
         position="fixed"
@@ -134,6 +163,16 @@ export default function Layout({ children }: LayoutProps) {
           bgcolor: 'background.paper',
           borderBottom: 1,
           borderColor: 'divider',
+          top: 0,
+          left: 0,
+          right: 0,
+          pt: 'env(safe-area-inset-top)',
+          pl: 'env(safe-area-inset-left)',
+          pr: 'env(safe-area-inset-right)',
+          height: 'auto',
+          '@supports (-webkit-touch-callout: none)': {
+            height: 'calc(64px + env(safe-area-inset-top))',
+          }
         }}
       >
         <Container maxWidth={false} sx={{ px: 2, height: 64 }}>
