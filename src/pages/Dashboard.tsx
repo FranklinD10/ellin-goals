@@ -11,6 +11,7 @@ import { AnimatedCard } from '../components/AnimatedCard';
 import { isMobile } from 'react-device-detect';
 import { useNotification } from '../contexts/NotificationContext';
 import { PageTransition } from '../components/PageTransition';
+import { useTheme } from '@mui/material/styles';
 
 export default function Dashboard() {
   const { currentUser, isTransitioning } = useUser();
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
   const optimisticUpdates = useRef(new Map<string, boolean>()).current;
   const { showNotification } = useNotification();  // Fix: Destructure showNotification from the context
+  const theme = useTheme();
 
   const loadData = useCallback(async () => {
     if (isTransitioning) return;

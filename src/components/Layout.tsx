@@ -144,8 +144,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <Box sx={{ 
       bgcolor: 'background.default',
-      minHeight: '100vh',
-      minHeight: '-webkit-fill-available',
+      minHeight: ['100vh', '-webkit-fill-available'],
       display: 'flex',
       flexDirection: 'column',
       paddingTop: `calc(64px + env(safe-area-inset-top))`,
