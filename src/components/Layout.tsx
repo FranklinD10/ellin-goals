@@ -15,23 +15,14 @@ interface LayoutProps {
   children?: ReactNode;
 }
 
-const AppContainer = styled(Container)(({ theme }) => ({
-  padding: 16,
-  paddingTop: `calc(env(safe-area-inset-top) + ${theme.spacing(2)})`,
-  paddingBottom: `calc(env(safe-area-inset-bottom) + ${theme.spacing(7.5)})`,
-  margin: '0 auto',
-  maxWidth: 800,
-  WebkitOverflowScrolling: 'touch',
-  overflowY: 'auto',
+const AppContainer = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'flex-start',
-  position: 'relative',
+  minHeight: '100vh',
   '@supports (-webkit-touch-callout: none)': {
-    // iOS-specific fix for momentum scrolling
-    height: '-webkit-fill-available',
-  },
-}));
+    minHeight: '-webkit-fill-available'
+  }
+});
 
 const ResponsiveContainer = styled('div')({
   maxWidth: isMobile ? '100%' : isTablet ? '768px' : '1200px',
@@ -47,28 +38,42 @@ const BottomNavigation = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderTop: `1px solid ${theme.palette.divider}`,
   zIndex: 1200,
-  height: 56,
+  display: 'flex',
+  alignItems: 'flex-start',
+  height: 'auto',
+  minHeight: 56,
   paddingBottom: 'env(safe-area-inset-bottom)',
   '& .MuiTypography-caption': {
-    marginTop: '4px'  // Space between icon and text
+    marginTop: '4px'
   },
   '@supports (-webkit-touch-callout: none)': {
-    // iOS-specific fix for bottom navigation
-    height: 'calc(56px + env(safe-area-inset-bottom))',
+    paddingLeft: 'env(safe-area-inset-left)',
+    paddingRight: 'env(safe-area-inset-right)'
   },
 }));
 
 const ContentContainer = styled(ResponsiveContainer)({
-  paddingBottom: 'calc(56px + env(safe-area-inset-bottom))', // Just nav height + safe area
-  WebkitOverflowScrolling: 'touch',
+  flex: 1,
+  width: '100%',
   position: 'relative',
-  zIndex: 1
+  zIndex: 1,
+  overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  paddingBottom: 'calc(56px + env(safe-area-inset-bottom))',
+  '@supports (-webkit-touch-callout: none)': {
+    minHeight: '-webkit-fill-available',
+    paddingLeft: 'env(safe-area-inset-left)',
+    paddingRight: 'env(safe-area-inset-right)',
+  }
 });
 
 const SwipeableContainer = styled(ContentContainer)({
   touchAction: 'pan-y',
   position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
   height: '100%',
+  overflowX: 'hidden'
 });
 
 const NavLinkStyled = styled(Link, {
