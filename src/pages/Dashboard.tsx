@@ -176,13 +176,11 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      <Stack spacing={2} sx={{ 
+      <Stack spacing={3} sx={{ 
         p: 2,
-        // Ensure content respects safe areas and theme
         bgcolor: 'background.default',
         minHeight: '100%',
         '@supports (-webkit-touch-callout: none)': {
-          // iOS-specific adjustments
           minHeight: '-webkit-fill-available',
           pt: `calc(${theme.spacing(2)} + env(safe-area-inset-top))`,
           pb: `calc(${theme.spacing(2)} + env(safe-area-inset-bottom))`,
@@ -190,7 +188,7 @@ export default function Dashboard() {
           pr: `calc(${theme.spacing(2)} + env(safe-area-inset-right))`,
         }
       }}>
-        <Typography variant="h5" color="text.secondary">
+        <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long',
             month: 'long',
@@ -198,19 +196,14 @@ export default function Dashboard() {
           })}
         </Typography>
 
-        <Grid container spacing={2} sx={{ mb: 2, mx: 0 }}>
-          <Grid item xs={6} sx={{ pl: '0 !important' }}>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
             <StatsCard 
               title="Completion Rate" 
               value={completionRate} 
             />
           </Grid>
-          <Grid item xs={6} sx={{ 
-            pr: '0 !important',
-            '& .MuiCard-root': {
-              marginRight: '16px'
-            }
-          }}>
+          <Grid item xs={6}>
             <StatsCard 
               title="Remaining Habits" 
               value={habits.length} 

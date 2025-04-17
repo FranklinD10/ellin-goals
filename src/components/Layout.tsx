@@ -15,66 +15,59 @@ interface LayoutProps {
   children?: ReactNode;
 }
 
-const AppContainer = styled(Box)({
+const PageContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100vh',
-  '@supports (-webkit-touch-callout: none)': {
-    minHeight: '-webkit-fill-available'
-  }
-});
+  height: '-webkit-fill-available',
+  width: '100%',
+  backgroundColor: theme.palette.background.default,
+  position: 'relative',
+}));
 
-const ResponsiveContainer = styled('div')({
-  maxWidth: isMobile ? '100%' : isTablet ? '768px' : '1200px',
+const ContentContainer = styled(Box)(({ theme }) => ({
+  flex: 1,
+  width: '100%',
+  maxWidth: isMobile ? '100%' : '800px',
   margin: '0 auto',
-  padding: isMobile ? '8px' : '16px',
-});
+  paddingLeft: theme.spacing(2),
+  paddingRight: theme.spacing(2),  paddingBottom: 'calc(76px + env(safe-area-inset-bottom))',
+  paddingTop: 'calc(72px + env(safe-area-inset-top))',
+  '@supports (-webkit-touch-callout: none)': {
+    paddingBottom: 'calc(76px + env(safe-area-inset-bottom))',
+    paddingTop: 'calc(72px + env(safe-area-inset-top))',
+    minHeight: '-webkit-fill-available',
+  },
+}));
 
-const BottomNavigation = styled(Box)(({ theme }) => ({
+const AppHeader = styled(AppBar)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  boxShadow: 'none',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  paddingTop: 'env(safe-area-inset-top)',
+  zIndex: 1200,
+  height: 'auto',
+  '@supports (-webkit-touch-callout: none)': {
+    height: 'calc(64px + env(safe-area-inset-top))',
+  },
+}));
+
+const BottomNav = styled(Box)(({ theme }) => ({
   position: 'fixed',
   bottom: 0,
   left: 0,
   right: 0,
   backgroundColor: theme.palette.background.paper,
   borderTop: `1px solid ${theme.palette.divider}`,
-  zIndex: 1200,
-  display: 'flex',
-  alignItems: 'flex-start',
-  height: 'auto',
-  minHeight: 56,
   paddingBottom: 'env(safe-area-inset-bottom)',
-  '& .MuiTypography-caption': {
-    marginTop: '4px'
-  },
-  '@supports (-webkit-touch-callout: none)': {
-    paddingLeft: 'env(safe-area-inset-left)',
-    paddingRight: 'env(safe-area-inset-right)'
-  },
+  paddingLeft: 'env(safe-area-inset-left)',
+  paddingRight: 'env(safe-area-inset-right)',
+  zIndex: 1200,
 }));
-
-const ContentContainer = styled(ResponsiveContainer)({
-  flex: 1,
-  width: '100%',
-  position: 'relative',
-  zIndex: 1,
-  overflowY: 'auto',
-  WebkitOverflowScrolling: 'touch',
-  paddingBottom: 'calc(56px + env(safe-area-inset-bottom))',
-  '@supports (-webkit-touch-callout: none)': {
-    minHeight: '-webkit-fill-available',
-    paddingLeft: 'env(safe-area-inset-left)',
-    paddingRight: 'env(safe-area-inset-right)',
-  }
-});
-
-const SwipeableContainer = styled(ContentContainer)({
-  touchAction: 'pan-y',
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  overflowX: 'hidden'
-});
 
 const NavLinkStyled = styled(Link, {
   shouldForwardProp: (prop) => prop !== 'active' && prop !== 'color',
@@ -86,13 +79,12 @@ const NavLinkStyled = styled(Link, {
   textDecoration: 'none',
   color: active ? color : theme.palette.text.secondary,
   flex: 1,
-  padding: '8px 0',
-  height: '100%',
+  padding: '12px 0',
   '& .MuiTypography-h6': {
-    marginBottom: '2px'  // Space between icon and text
+    marginBottom: '2px'
   },
   '& .MuiTypography-caption': {
-    marginBottom: '4px'  // Space between text and bottom
+    marginBottom: '4px'
   }
 }));
 
@@ -113,99 +105,37 @@ function NavLink({ to, icon, label }: { to: string; icon: string; label: string 
   );
 }
 
-const ConfettiCanvas = styled('canvas')({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  pointerEvents: 'none',
-  zIndex: 100,
-});
-
 export default function Layout({ children }: LayoutProps) {
   const { colorScheme, toggleColorScheme } = useTheme();
   const muiTheme = useMuiTheme();
   const isOnline = useOnlineStatus();
   const gestureHandlers = useNavigationGestures();
 
-  // Update CSS variables when theme changes
-  React.useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--safe-area-top-color',
-      muiTheme.palette.background.paper
-    );
-    document.documentElement.style.setProperty(
-      '--safe-area-bottom-color',
-      muiTheme.palette.background.paper
-    );
-  }, [muiTheme.palette.background.paper]);
-
-  const handleToggleColorScheme = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    toggleColorScheme();
-  };
-
   return (
-    <Box sx={{ 
-      bgcolor: 'background.default',
-      minHeight: ['100vh', '-webkit-fill-available'],
-      display: 'flex',
-      flexDirection: 'column',
-      paddingTop: `calc(64px + env(safe-area-inset-top))`,
-      '@supports (-webkit-touch-callout: none)': {
-        // iOS-specific padding adjustments
-        paddingTop: `calc(64px + env(safe-area-inset-top))`,
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-      }
-    }}>
-      <AppBar 
-        position="fixed"
-        elevation={0}
-        sx={{ 
-          bgcolor: 'background.paper',
-          borderBottom: 1,
-          borderColor: 'divider',
-          top: 0,
-          left: 0,
-          right: 0,
-          pt: 'env(safe-area-inset-top)',
-          pl: 'env(safe-area-inset-left)',
-          pr: 'env(safe-area-inset-right)',
-          height: 'auto',
-          '@supports (-webkit-touch-callout: none)': {
-            height: 'calc(64px + env(safe-area-inset-top))',
-          }
-        }}
-      >
-        <Container maxWidth={false} sx={{ px: 2, height: 64 }}>
+    <PageContainer>
+      <AppHeader>
+        <Container maxWidth={false}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ height: '100%', maxWidth: 800, mx: 'auto' }}
+            sx={{ height: 64 }}
           >
-            <Typography 
-              variant="h6" 
-              fontWeight={700} 
-              sx={{ 
-                flexShrink: 0,
-                color: 'text.primary' // Ensure text is visible in both modes
-              }}
-            >
+            <Typography variant="h6" fontWeight={700} color="text.primary">
               ElLin Goals
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center">
               {!isOnline && (
-                <Typography variant="body2" color="warning.main">Offline Mode</Typography>
+                <Typography variant="body2" color="warning.main">
+                  Offline Mode
+                </Typography>
               )}
               <IconButton
-                onClick={handleToggleColorScheme}
+                onClick={() => toggleColorScheme()}
                 sx={{ 
-                  color: 'text.primary', // Ensure icon is visible in both modes
                   border: 1,
-                  borderColor: 'divider'
+                  borderColor: 'divider',
+                  color: 'text.primary'
                 }}
                 size="large"
               >
@@ -215,31 +145,26 @@ export default function Layout({ children }: LayoutProps) {
             </Stack>
           </Stack>
         </Container>
-      </AppBar>
+      </AppHeader>
 
-      <ConfettiCanvas id="confetti-canvas" />
-      <SwipeableContainer {...gestureHandlers}>
+      <ContentContainer {...gestureHandlers}>
         {children}
         <Outlet />
-      </SwipeableContainer>
-      
-      <BottomNavigation>
+      </ContentContainer>
+
+      <BottomNav>
         <Stack
           direction="row"
-          justifyContent="center"
+          justifyContent="space-around"
           alignItems="center"
-          sx={{ 
-            width: '100%', 
-            height: '100%',
-            pb: 'env(safe-area-inset-bottom)'
-          }}
+          sx={{ height: 56 }}
         >
           <NavLink to="/" icon="📊" label="Today" />
           <NavLink to="/manage" icon="🎯" label="Habits" />
           <NavLink to="/analytics" icon="📈" label="Stats" />
           <NavLink to="/settings" icon="⚙️" label="Settings" />
         </Stack>
-      </BottomNavigation>
-    </Box>
+      </BottomNav>
+    </PageContainer>
   );
 }
