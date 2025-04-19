@@ -2,6 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { version } from './package.json';
+import fs from 'fs';
+
+// Automatically write the app version to .env for VITE_APP_VERSION
+fs.writeFileSync('.env', `VITE_APP_VERSION=${version}\n`);
 
 export default defineConfig({
   base: '/',

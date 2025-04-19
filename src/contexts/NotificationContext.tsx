@@ -58,7 +58,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           variant="filled"
           onClose={handleClose}
           severity={notification?.color || 'success'}
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            color: (theme) => theme.palette.mode === 'light' ? theme.palette.text.primary : undefined,
+            backgroundColor: (theme) => theme.palette.mode === 'light' ? theme.palette.background.paper : undefined,
+          }}
         >
           {notification?.title && (
             <AlertTitle>{notification.title}</AlertTitle>
