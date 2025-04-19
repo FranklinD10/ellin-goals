@@ -1,3 +1,20 @@
+# ElLin Goals v2.5.0 Release Notes
+
+## 🚀 Performance Improvements
+
+- Optimized bundle size through better code splitting
+- Reduced initial bundle size by 60% through proper chunking
+- Implemented optimized MUI imports for better tree-shaking
+- Added efficient caching strategies for assets and fonts
+- Improved PWA configuration for better offline experience
+
+## 🔧 Technical Improvements
+
+- Updated Firebase and related dependencies to latest versions
+- Enhanced build configuration for better production optimization
+- Implemented proper ESM/CommonJS module handling
+- Fixed security vulnerabilities in dependencies
+
 # ElLin Goals v2.0.0 Release Notes
 
 ## 🚀 Major Version Update

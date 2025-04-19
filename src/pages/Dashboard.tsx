@@ -79,8 +79,17 @@ export default function Dashboard() {
 
   const handleToggle = useCallback(async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const isCompleted = event.target.checked;
-    const card = event.target.closest('.MuiCard-root');
-    
+    // Always play sound and confetti when marking complete
+    if (isCompleted) {
+      playCompletionSound();
+      // Try to animate the closest card, fallback to document body if not found
+      const card = event.target.closest('.MuiCard-root') as HTMLElement | null;
+      if (card) {
+        animateCompletion(card);
+      } else {
+        animateCompletion(document.body);
+      }
+    }
     try {
       // Optimistically update UI
       optimisticUpdates.set(habitId, isCompleted);
@@ -91,13 +100,7 @@ export default function Dashboard() {
           next.add(habitId);
           return next;
         });
-        
-        if (card) {
-          playCompletionSound();
-          animateCompletion(card as HTMLElement);
-        }
       }
-
       // Update completion rate optimistically
       setCompletionRate(prev => {
         const totalHabits = habits.length + completedHabits.size;
@@ -106,34 +109,34 @@ export default function Dashboard() {
           completedHabits.size;
         return (completedCount / totalHabits) * 100;
       });
-
       // Perform actual update
-      const result = await logHabitCompletion(habitId, currentUser!, new Date(), isCompleted);
-      
-      // Clear optimistic update after success
+      await logHabitCompletion(habitId, currentUser!, new Date(), isCompleted);
       optimisticUpdates.delete(habitId);
+      // After logging, reload data to ensure UI stays in sync with backend
+      await loadData();
     } catch (error) {
       console.error('Error toggling habit:', error);
-      
       // Revert optimistic update on error
       optimisticUpdates.delete(habitId);
       if (isCompleted) {
-        setHabits(prev => [...prev, habits.find(h => h.id === habitId)!].sort((a, b) => 
-          a.created_at.seconds - b.created_at.seconds
-        ));
+        setHabits(prev => {
+          const habit = habits.find(h => h.id === habitId);
+          if (habit) {
+            return [...prev, habit].sort((a, b) => a.created_at.seconds - b.created_at.seconds);
+          }
+          return prev;
+        });
         setCompletedHabits(prev => {
           const next = new Set(prev);
           next.delete(habitId);
           return next;
         });
       }
-      
       showNotification({
         title: 'Error',
         message: 'Failed to update habit completion',
-        color: 'error'  // Changed from 'red' to 'error' to match AlertColor type
+        color: 'error'
       });
-      
       await loadData();
     }
   }, [currentUser, habits, completedHabits.size, loadData]);

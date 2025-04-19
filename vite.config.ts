@@ -16,9 +16,31 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
-  },
-  plugins: [
-    react(),
+  },  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-mui': ['@mui/material', '@mui/icons-material'],
+          'vendor-charts': ['recharts'],
+          'vendor-motion': ['framer-motion'],
+        }
+      }
+    },
+    commonjsOptions: {
+      esmExternals: ['firebase'],
+    },
+    chunkSizeWarningLimit: 800,
+    sourcemap: false,
+    target: 'esnext',
+  },  plugins: [
+    react({
+      babel: {
+        plugins: [
+          ['@emotion/babel-plugin'],
+          ['babel-plugin-direct-import', { modules: ['@mui/material', '@mui/icons-material'] }],
+        ],
+      },
+    }),
     VitePWA({
       registerType: 'prompt', // Changed from autoUpdate
       includeAssets: ['favicon.svg', 'pwa-192x192.png', 'splash.png'],
@@ -36,11 +58,41 @@ export default defineConfig({
             type: 'image/png'
           }
         ]
-      },
-      workbox: {
+      },      workbox: {
         cleanupOutdatedCaches: true,
-        skipWaiting: false, // Changed to false to enable update prompt
-        clientsClaim: true
+        skipWaiting: false,
+        clientsClaim: true,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+            },
+          },
+        ],
       },
       // Add version to filename for cache busting
       filename: `sw-v${version}.js`,

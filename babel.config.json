@@ -1,0 +1,17 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "modules": false,
+      "targets": {
+        "browsers": [">0.2%", "not dead", "not op_mini all"]
+      }
+    }],
+    "@babel/preset-react",
+    "@babel/preset-typescript"
+  ],
+  "plugins": [
+    ["@babel/plugin-transform-runtime"],
+    ["@emotion/babel-plugin"],
+    ["babel-plugin-direct-import", { "modules": ["@mui/material", "@mui/icons-material"] }]
+  ]
+}
