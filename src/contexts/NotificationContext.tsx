@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Snackbar, Alert, AlertTitle, AlertColor } from '@mui/material';
+import { Snackbar, Alert, AlertTitle, AlertColor, Button } from '@mui/material';
 import { useTheme } from './ThemeContext';
 
 interface NotificationOptions {
@@ -7,6 +7,11 @@ interface NotificationOptions {
   message: string;
   color?: AlertColor;
   autoHideDuration?: number;
+  action?: {
+    label: string;
+    icon?: React.ComponentType;
+    onClick: () => void;
+  };
 }
 
 interface NotificationContextType {
@@ -20,15 +25,28 @@ export const NotificationContext = createContext<NotificationContextType>({
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notification, setNotification] = useState<NotificationOptions | null>(null);
   const [open, setOpen] = useState(false);
+  const [notificationQueue, setNotificationQueue] = useState<NotificationOptions[]>([]);
   const { theme } = useTheme();
 
   const showNotification = (options: NotificationOptions) => {
-    setNotification(options);
-    setOpen(true);
+    if (!open) {
+      setNotification(options);
+      setOpen(true);
+    } else {
+      setNotificationQueue(prev => [...prev, options]);
+    }
   };
 
   const handleClose = () => {
     setOpen(false);
+    setTimeout(() => {
+      if (notificationQueue.length > 0) {
+        const nextNotification = notificationQueue[0];
+        setNotificationQueue(prev => prev.slice(1));
+        setNotification(nextNotification);
+        setOpen(true);
+      }
+    }, 150); // Small delay between notifications
   };
 
   return (
@@ -57,12 +75,29 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           elevation={6}
           variant="filled"
           onClose={handleClose}
-          severity={notification?.color || 'success'}
-          sx={{ 
+          severity={notification?.color || 'success'}          sx={{ 
             width: '100%',
-            color: (theme) => theme.palette.mode === 'light' ? theme.palette.text.primary : undefined,
-            backgroundColor: (theme) => theme.palette.mode === 'light' ? theme.palette.background.paper : undefined,
+            color: (theme) => theme.palette.mode === 'light' ? theme.palette.getContrastText(theme.palette.background.paper) : '#fff',
+            backgroundColor: (theme) => {
+              const color = notification?.color || 'success';
+              return theme.palette.mode === 'light' ? theme.palette[color].light : theme.palette[color].main;
+            },
           }}
+          action={
+            notification?.action ? (
+              <Button
+                color="inherit"
+                size="small"
+                startIcon={notification.action.icon ? <notification.action.icon /> : null}
+                onClick={() => {
+                  notification.action?.onClick();
+                  handleClose();
+                }}
+              >
+                {notification.action.label}
+              </Button>
+            ) : undefined
+          }
         >
           {notification?.title && (
             <AlertTitle>{notification.title}</AlertTitle>

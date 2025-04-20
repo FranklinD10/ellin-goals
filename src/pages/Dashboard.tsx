@@ -254,7 +254,16 @@ export default function Dashboard() {
           container 
           spacing={2} 
           alignItems="stretch"
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            margin: 0,
+            '& > .MuiGrid-item': {
+              paddingLeft: 0,
+              '&:last-child': {
+                paddingRight: 0
+              }
+            }
+          }}
         >
           <Grid item xs={6} sx={{ display: 'flex' }}>
             <StatsCard 

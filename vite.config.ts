@@ -116,10 +116,10 @@ export default defineConfig({
       },
       // Add version to filename for cache busting
       filename: `sw-v${version}.js`,
-      // Add periodic update checks
-      injectRegister: 'script',
+      // Add periodic update checks      injectRegister: 'script',
       strategies: 'generateSW',
-      minify: true
+      minify: true,
+      filename: `sw-v${version}.js` // Ensure service worker filename uses correct version
     })
   ]
 });

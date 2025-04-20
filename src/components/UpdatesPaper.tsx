@@ -27,17 +27,35 @@ const checkForUpdates = async () => {
 
 const UpdatesPaper = () => {
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
-  const { showNotification } = useNotification();
-
-  const handleCheckForUpdates = async () => {
-    const hasUpdate = await checkForUpdates();
-    setLastCheckTime(new Date());
-    
+  const { showNotification } = useNotification();  const handleCheckForUpdates = async () => {
     showNotification({
       title: 'Update Check',
-      message: hasUpdate ? 'Update found! Applying changes...' : 'No updates available.',
-      color: hasUpdate ? 'info' : 'success'
+      message: 'Checking for updates...',
+      color: 'info',
+      autoHideDuration: 2000 // Show checking message for 2 seconds
     });
+
+    try {
+      // Add a small delay to ensure the checking message is visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const hasUpdate = await checkForUpdates();
+      setLastCheckTime(new Date());
+      
+      showNotification({
+        title: 'Update Check Complete',
+        message: hasUpdate ? 'Update found! Applying changes...' : 'No updates available.',
+        color: hasUpdate ? 'info' : 'success',
+        autoHideDuration: hasUpdate ? undefined : 3000 // Keep update notification visible indefinitely
+      });
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      showNotification({
+        title: 'Update Check Failed',
+        message: 'Failed to check for updates',
+        color: 'error',
+        autoHideDuration: 4000
+      });
+    }
   };
 
   return (

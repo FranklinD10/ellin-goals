@@ -4,32 +4,55 @@
 
 const serviceWorkerScope = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_NAME = 'ellin-goals-v1';
+const APP_SHELL_FILES = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.ico',
+  '/favicon.svg',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png'
+];
+
+// Add version timestamp to help detect updates
+const VERSION_TIMESTAMP = new Date().getTime();
 
 serviceWorkerScope.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/favicon.ico'
-      ]);
-    })
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      // Cache app shell files
+      await cache.addAll(APP_SHELL_FILES);
+      // Cache version timestamp
+      await cache.put('/_version', new Response(VERSION_TIMESTAMP.toString()));
+      // Activate immediately
+      await serviceWorkerScope.skipWaiting();
+    })()
   );
 });
 
 serviceWorkerScope.addEventListener('activate', (event) => {
-  // Clean up old caches
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
+    (async () => {
+      // Clean up old caches
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
       );
-    })
+
+      // Take control of all clients immediately
+      await serviceWorkerScope.clients.claim();
+
+      // Notify all clients that the service worker has been updated
+      const clients = await serviceWorkerScope.clients.matchAll();
+      clients.forEach(client => {
+        client.postMessage({ type: 'SERVICE_WORKER_UPDATED' });
+      });
+    })()
   );
 });
 
@@ -38,16 +61,33 @@ serviceWorkerScope.addEventListener('fetch', (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
       
-      // Try to get the response from cache first
-      const cachedResponse = await caches.match(event.request);
+      // For HTML documents, always fetch fresh from network
+      if (event.request.mode === 'navigate' || 
+          (event.request.method === 'GET' && 
+           event.request.headers.get('accept')?.includes('text/html'))) {
+        try {
+          const networkResponse = await fetch(event.request);
+          // Update cache in background
+          event.waitUntil(cache.put(event.request, networkResponse.clone()));
+          return networkResponse;
+        } catch (error) {
+          const cachedResponse = await cache.match(event.request);
+          return cachedResponse || new Response('Network error', { status: 408 });
+        }
+      }
+      
+      // For other resources, try cache first
+      const cachedResponse = await cache.match(event.request);
       if (cachedResponse) {
-        // If we have a cached response, return it but also update cache in background
+        // Update cache in background for non-HTML resources
         event.waitUntil(
-          fetch(event.request).then(response => {
-            if (response.ok) {
-              cache.put(event.request, response.clone());
-            }
-          }).catch(() => {/* ignore */})
+          fetch(event.request)
+            .then(response => {
+              if (response.ok) {
+                return cache.put(event.request, response);
+              }
+            })
+            .catch(() => {/* ignore network errors for cache updates */})
         );
         return cachedResponse;
       }
