@@ -1,3 +1,11 @@
+# ElLin Goals v2.5.5 Release Notes
+
+## 🔄 Updates and Improvements
+
+- Added new version 2.5.5 release
+- Updated dependencies to latest versions
+- Improved application stability
+
 # ElLin Goals v2.5.0 Release Notes
 
 ## 🚀 Performance Improvements
