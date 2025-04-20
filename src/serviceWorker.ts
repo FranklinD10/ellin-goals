@@ -35,9 +35,39 @@ serviceWorkerScope.addEventListener('activate', (event) => {
 
 serviceWorkerScope.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      
+      // Try to get the response from cache first
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        // If we have a cached response, return it but also update cache in background
+        event.waitUntil(
+          fetch(event.request).then(response => {
+            if (response.ok) {
+              cache.put(event.request, response.clone());
+            }
+          }).catch(() => {/* ignore */})
+        );
+        return cachedResponse;
+      }
+
+      // If not in cache, fetch from network
+      try {
+        const networkResponse = await fetch(event.request);
+        if (networkResponse.ok) {
+          // Cache successful responses
+          event.waitUntil(cache.put(event.request, networkResponse.clone()));
+        }
+        return networkResponse;
+      } catch (error) {
+        // If both cache and network fail, return a basic error response
+        return new Response('Network error happened', {
+          status: 408,
+          headers: { 'Content-Type': 'text/plain' },
+        });
+      }
+    })()
   );
 });
 
