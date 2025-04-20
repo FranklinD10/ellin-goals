@@ -119,7 +119,6 @@ export default defineConfig({
       // Add periodic update checks      injectRegister: 'script',
       strategies: 'generateSW',
       minify: true,
-      filename: `sw-v${version}.js` // Ensure service worker filename uses correct version
     })
   ]
 });
