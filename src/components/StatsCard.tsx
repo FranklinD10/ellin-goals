@@ -7,18 +7,22 @@ interface StatsCardProps {
 }
 
 export default function StatsCard({ title, value, suffix = '%' }: StatsCardProps) {
-  return (    <Card sx={{ 
-      p: 2,
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between'
-    }}>
-      <Stack spacing={1.5}>
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+  return (
+    <Card 
+      sx={{ 
+        height: 120,
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2
+      }}
+    >
+      <Stack spacing={1.5} alignItems="center">
+        <Typography variant="body2" color="text.secondary">
           {title}
         </Typography>
-        <Typography variant="h4" fontWeight={700} sx={{ lineHeight: 1 }}>
+        <Typography variant="h4" fontWeight={700}>
           {value.toFixed(0)}{suffix}
         </Typography>
       </Stack>

@@ -4,8 +4,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { version } from './package.json';
 import fs from 'fs';
 
-// Automatically write the app version to .env for VITE_APP_VERSION
-fs.writeFileSync('.env', `VITE_APP_VERSION=${version}\n`);
+// Update app version in .env without overwriting other variables
+try {
+  const envContent = fs.readFileSync('.env', 'utf-8');
+  const updatedContent = envContent.replace(
+    /^VITE_APP_VERSION=.*$/m,
+    `VITE_APP_VERSION=${version}`
+  );
+  fs.writeFileSync('.env', updatedContent);
+} catch (error) {
+  // If .env doesn't exist, create it with just the version
+  fs.writeFileSync('.env', `VITE_APP_VERSION=${version}\n`);
+}
 
 export default defineConfig({
   base: '/',

@@ -12,6 +12,7 @@ import { isMobile } from 'react-device-detect';
 import { useNotification } from '../contexts/NotificationContext';
 import { PageTransition } from '../components/PageTransition';
 import { useTheme } from '@mui/material/styles';
+import { persistHabits, loadHabits } from '../lib/persistence';
 
 export default function Dashboard() {
   const { currentUser, isTransitioning } = useUser();
@@ -21,14 +22,33 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [completedHabits, setCompletedHabits] = useState<Set<string>>(new Set());
   const optimisticUpdates = useRef(new Map<string, boolean>()).current;
-  const { showNotification } = useNotification();  // Fix: Destructure showNotification from the context
+  const { showNotification } = useNotification();
   const theme = useTheme();
+  const initialLoadDone = useRef(false);
+  const lastFetchRef = useRef<number>(0);
 
   const loadData = useCallback(async () => {
     if (isTransitioning) return;
 
     try {
-      setLoading(true);
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchRef.current;
+      
+      // Always show cached data first if available
+      const cachedHabits = loadHabits();
+      if (cachedHabits.length > 0 && !initialLoadDone.current) {
+        setHabits(cachedHabits);
+        setLoading(false);
+      }
+
+      // Skip fetch if we recently loaded and this isn't the initial load
+      if (timeSinceLastFetch < 30000 && initialLoadDone.current) {
+        return;
+      }
+
+      if (!initialLoadDone.current) {
+        setLoading(true);
+      }
       setError(null);
 
       const [userHabits, todayLogs] = await Promise.all([
@@ -49,10 +69,14 @@ export default function Dashboard() {
           habit => !completedHabitIds.has(habit.id)
         );
         setHabits(uncompletedHabits);
+        persistHabits(userHabits); // Cache the habits
         
         if (userHabits.length > 0) {
           setCompletionRate((completedHabitIds.size / userHabits.length) * 100);
         }
+
+        lastFetchRef.current = now;
+        initialLoadDone.current = true;
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -77,6 +101,31 @@ export default function Dashboard() {
     }
   }, [currentUser, isTransitioning, loadData]);
 
+  useEffect(() => {
+    // Initial load
+    loadData();
+
+    // Set up prefetching
+    const prefetchInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    }, 300000); // Refresh data every 5 minutes when tab is visible
+
+    // Handle visibility changes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(prefetchInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [loadData]);
+
   const handleToggle = useCallback(async (habitId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const isCompleted = event.target.checked;
     // Always play sound and confetti when marking complete
@@ -90,47 +139,51 @@ export default function Dashboard() {
         animateCompletion(document.body);
       }
     }
+
     try {
       // Optimistically update UI
       optimisticUpdates.set(habitId, isCompleted);
       if (isCompleted) {
-        setHabits(prev => prev.filter(h => h.id !== habitId));
-        setCompletedHabits(prev => {
-          const next = new Set(prev);
-          next.add(habitId);
-          return next;
-        });
+        const habit = habits.find(h => h.id === habitId);
+        if (habit) {
+          setHabits(prev => prev.filter(h => h.id !== habitId));
+          setCompletedHabits(prev => {
+            const next = new Set(prev);
+            next.add(habitId);
+            return next;
+          });
+          // Update completion rate optimistically
+          setCompletionRate(prev => {
+            const totalHabits = habits.length + completedHabits.size;
+            const completedCount = completedHabits.size + 1;
+            return (completedCount / totalHabits) * 100;
+          });
+        }
       }
-      // Update completion rate optimistically
-      setCompletionRate(prev => {
-        const totalHabits = habits.length + completedHabits.size;
-        const completedCount = isCompleted ? 
-          completedHabits.size + 1 : 
-          completedHabits.size;
-        return (completedCount / totalHabits) * 100;
-      });
+
       // Perform actual update
       await logHabitCompletion(habitId, currentUser!, new Date(), isCompleted);
       optimisticUpdates.delete(habitId);
-      // After logging, reload data to ensure UI stays in sync with backend
-      await loadData();
+      
+      // Only reload data if the optimistic update failed
+      const shouldReload = !isCompleted || !habits.find(h => h.id === habitId);
+      if (shouldReload) {
+        await loadData();
+      }
     } catch (error) {
       console.error('Error toggling habit:', error);
       // Revert optimistic update on error
       optimisticUpdates.delete(habitId);
       if (isCompleted) {
-        setHabits(prev => {
-          const habit = habits.find(h => h.id === habitId);
-          if (habit) {
-            return [...prev, habit].sort((a, b) => a.created_at.seconds - b.created_at.seconds);
-          }
-          return prev;
-        });
-        setCompletedHabits(prev => {
-          const next = new Set(prev);
-          next.delete(habitId);
-          return next;
-        });
+        const habit = habits.find(h => h.id === habitId);
+        if (habit) {
+          setHabits(prev => [...prev, habit].sort((a, b) => a.created_at.seconds - b.created_at.seconds));
+          setCompletedHabits(prev => {
+            const next = new Set(prev);
+            next.delete(habitId);
+            return next;
+          });
+        }
       }
       showNotification({
         title: 'Error',
@@ -197,16 +250,19 @@ export default function Dashboard() {
             month: 'long',
             day: 'numeric'
           })}
-        </Typography>
-
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
+        </Typography>        <Grid 
+          container 
+          spacing={2} 
+          alignItems="stretch"
+          sx={{ width: '100%' }}
+        >
+          <Grid item xs={6} sx={{ display: 'flex' }}>
             <StatsCard 
               title="Completion Rate" 
               value={completionRate} 
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} sx={{ display: 'flex' }}>
             <StatsCard 
               title="Remaining Habits" 
               value={habits.length} 
@@ -239,8 +295,7 @@ export default function Dashboard() {
                   onSwipe={() => isMobile && handleToggle(habit.id, { target: { checked: true } } as any)}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 500 }}>{habit.name}</Typography>
+                    <Box>                      <Typography component="div" variant="h6" sx={{ fontWeight: 500 }}>{habit.name}</Typography>
                       <CategoryBadge category={habit.category} />
                     </Box>
                     <Checkbox

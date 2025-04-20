@@ -19,12 +19,12 @@ export const triggerConfetti = () => {
   const canvas = document.getElementById('confetti-canvas') as HTMLCanvasElement;
   if (!canvas) return;
 
-  // Get the current theme color from CSS variable
-  const themeColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--theme-color')
-    .trim();
+  // Get the current theme color from CSS variable and ensure proper hex format
+  const style = getComputedStyle(document.documentElement);
+  const themeColor = style.getPropertyValue('--theme-color').trim().replace(/\s/g, '');
+  const hexColor = themeColor.startsWith('#') ? themeColor : `#${themeColor}`;
   
-  const baseColor = hexToRgb(themeColor);
+  const baseColor = hexToRgb(hexColor);
   const lighterColor = baseColor.map(c => Math.min(255, c + 100));
   const lightestColor = baseColor.map(c => Math.min(255, c + 140));
 
