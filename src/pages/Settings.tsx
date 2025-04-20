@@ -159,7 +159,7 @@ export default function Settings() {
                   Created by Franklin with 💖
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Version {import.meta.env.VITE_APP_VERSION || '2.5.0'}
+                  Version {import.meta.env.VITE_APP_VERSION || '2.5.5'}
                 </Typography>
               </Stack>
             </Stack>
