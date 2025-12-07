@@ -1,6 +1,6 @@
 # Ellin Goals
 
-A habit tracking application built with SvelteKit and Firebase.
+A habit tracking application built with React and Firebase.
 
 ## Features
 
@@ -42,7 +42,14 @@ npm run dev
 
 ## Technologies
 
-- SvelteKit
+- React 18.3.1
 - Firebase (Authentication, Firestore)
 - TypeScript
 - Vite
+- Material-UI
+
+## Security
+
+This project has been assessed for CVE-2025-55182 (React2shell RCE vulnerability) and is **NOT VULNERABLE**. See [SECURITY_ASSESSMENT_CVE-2025-55182.md](./SECURITY_ASSESSMENT_CVE-2025-55182.md) for details.
+
+The project uses React 18.x, which does not include the vulnerable React Server Components feature. For security recommendations and future upgrade guidance, please refer to the security assessment document.
