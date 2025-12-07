@@ -42,7 +42,7 @@ npm run dev
 
 ## Technologies
 
-- React 18.3.1
+- React 18.x (^18.2.0)
 - Firebase (Authentication, Firestore)
 - TypeScript
 - Vite
