@@ -59,12 +59,8 @@ export class ClientIndexManager {
     try {
       const fields = this.parseIndexFieldsFromError(errorMessage);
       
-      const response = await axios.post<CreateIndexResponse>(
-        '/.netlify/functions/create-firestore-index',
-        { collectionId, fields }
-      );
-      
-      return response.data.success;
+      // Removed vulnerable index creation call
+      return false;
     } catch (error) {
       console.error('Failed to create index:', error);
       return false;
