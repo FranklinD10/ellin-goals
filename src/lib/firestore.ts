@@ -28,7 +28,7 @@ axiosRetry(axios, { retries: 3 });
 async function handleIndexError(error: any, collection: string, fields: string[]) {
   if (error.code === 'failed-precondition' && error.message?.includes('index')) {
     try {
-      await axios.post('/api/createIndex', { collection, fields });
+      // await axios.post('/api/createIndex', { collection, fields });
       // Wait a bit for the index to be created
       await new Promise(resolve => setTimeout(resolve, 2000));
       return true;
