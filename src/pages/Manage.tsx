@@ -90,12 +90,33 @@ export default function Manage() {
   const { showNotification } = useNotification();
 
   const handleAddHabit = async () => {
-    if (!habitName.trim() || !category || !currentUser) return;
+    const trimmedName = habitName.trim();
+    if (!trimmedName || !category || !currentUser) return;
+
+    // Security validation
+    if (trimmedName.length > 50) {
+      showNotification({
+        title: 'Validation Error',
+        message: 'Habit name must be 50 characters or less',
+        color: 'error'
+      });
+      return;
+    }
+
+    const isValidCategory = CATEGORIES.some(cat => cat.value === category);
+    if (!isValidCategory) {
+      showNotification({
+        title: 'Validation Error',
+        message: 'Invalid category selected',
+        color: 'error'
+      });
+      return;
+    }
     
     setLoading(true);
     try {
       await addHabit({
-        name: habitName,
+        name: trimmedName,
         category,
         user_id: currentUser
       });
@@ -142,6 +163,7 @@ export default function Manage() {
                   onChange={(e) => setHabitName(e.target.value)}
                   required
                   fullWidth
+                  inputProps={{ maxLength: 50 }}
                 />
                 <TextField
                   select
