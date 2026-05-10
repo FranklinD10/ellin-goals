@@ -1,1 +1,4 @@
-## 2026-05-09 - Ensure Safe Error Handling in UI and Console\n**Vulnerability:** Information Exposure (Stack traces/Error details)\n**Learning:** The `ErrorBoundary` component logged full error traces and exposed raw `error.message` directly into the DOM in all environments, which could leak internal implementations.\n**Prevention:** Utilize Vite's `import.meta.env.DEV` flag to conditionally render and log full details only in development.
+## 2025-05-10 - [Input Validation]
+**Vulnerability:** Missing input validation on habit creation in `src/pages/Manage.tsx`.
+**Learning:** Habit names and categories were not strictly validated before being submitted to the database. This could allow excessively long strings or arbitrary categories to be saved, potentially causing UI issues or inconsistent data.
+**Prevention:** Add input validation for both length (maxLength: 50) and category (must be in predefined list) on the client side before making the API call. Always validate and sanitize user input.
