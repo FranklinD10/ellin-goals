@@ -17,28 +17,7 @@ import {
 import { db } from './firebase';
 import { Habit, UserType, HabitLog, UserData, UserSettings } from '../types';
 import { startOfDay, endOfDay } from 'date-fns';
-import axiosRetry from 'axios-retry';
-import axios from 'axios';
 import { ClientIndexManager } from '../utils/clientIndexManager';
-
-// Use axiosRetry instead of destructuring retry
-axiosRetry(axios, { retries: 3 });
-
-// Add this function to handle index creation
-async function handleIndexError(error: any, collection: string, fields: string[]) {
-  if (error.code === 'failed-precondition' && error.message?.includes('index')) {
-    try {
-      // await axios.post('/api/createIndex', { collection, fields });
-      // Wait a bit for the index to be created
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return true;
-    } catch (indexError) {
-      console.error('Failed to create index:', indexError);
-      return false;
-    }
-  }
-  return false;
-}
 
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id) throw new Error('user_id is undefined');
