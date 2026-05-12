@@ -90,7 +90,9 @@ export default function Manage() {
   const { showNotification } = useNotification();
 
   const handleAddHabit = async () => {
-    const trimmedName = habitName.trim();
+    // Sanitize input to prevent XSS
+    const sanitizedName = habitName.replace(/[<>]/g, '');
+    const trimmedName = sanitizedName.trim();
     if (!trimmedName || !category || !currentUser) return;
 
     // Security validation
