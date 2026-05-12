@@ -36,7 +36,7 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
       created_at: Timestamp.now() 
     } as Habit;
   } catch (error) {
-    console.error('Error adding habit:', error);
+    console.error('Error adding habit');
     throw error;
   }
 };
@@ -59,7 +59,7 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
       created_at: doc.data().created_at || Timestamp.now()
     })) as Habit[];
   } catch (error) {
-    console.error('Error fetching habits:', error);
+    console.error('Error fetching habits');
     throw error;
   }
 };
@@ -109,7 +109,7 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
 
     return allLogs;
   } catch (error) {
-    console.error('Error fetching logs:', error);
+    console.error('Error fetching logs');
     // Return unsynced logs if Firebase fetch fails
     return unsyncedLogs;
   }
@@ -178,7 +178,7 @@ export const logHabitCompletion = async (
     
     return { success: true, docId, logData };
   } catch (error) {
-    console.error('Error logging habit:', error);
+    console.error('Error logging habit');
     throw error;
   }
 };
@@ -209,7 +209,7 @@ export const getAnalytics = async () => {
     const analytics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return analytics;
   } catch (error) {
-    console.error('Error fetching analytics:', error);
+    console.error('Error fetching analytics');
     throw error;
   }
 };
@@ -246,7 +246,7 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
       });
     }
   } catch (error) {
-    console.error('Error saving user settings:', error);
+    console.error('Error saving user settings');
     throw error;
   }
 };
@@ -266,7 +266,7 @@ export const getUserData = async (userId: UserType): Promise<UserData | null> =>
     }
     return null;
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching user data');
     return null;
   }
 };
