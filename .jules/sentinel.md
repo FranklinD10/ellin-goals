@@ -12,3 +12,8 @@
 **Vulnerability:** Raw error objects were being logged to `console.error` in `src/lib/firestore.ts`, potentially leaking internal application state or stack traces. Additionally, input sanitization was missing in `src/pages/Manage.tsx` for habit names.
 **Learning:** Even though React handles output escaping, it is a good defense-in-depth practice to sanitize user inputs before storing them in the database to prevent Stored XSS. Furthermore, error handling should never leak internal details to the client-side console, as this information can be leveraged by attackers.
 **Prevention:** Always log generic error messages to the console instead of the raw exception objects. Implement input sanitization (e.g., stripping `<` and `>`) alongside validation to enforce secure data storage.
+
+## 2025-05-13 - [Information Leakage]
+**Vulnerability:** Raw error objects (FirebaseError) were being thrown directly from catch blocks in `src/lib/firestore.ts`, exposing internal database structure and query information to higher-level components which could potentially render them.
+**Learning:** While `console.error` logs the error for debugging purposes internally, re-throwing the original error object can expose sensitive backend details. A generic error string must be thrown instead.
+**Prevention:** Always log raw errors internally (`console.error('msg', error)`), but throw generic sanitized errors (`throw new Error('Generic msg')`) to caller code interacting with the UI.
