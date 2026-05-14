@@ -38,7 +38,7 @@ export const signInAnonymousUser = async () => {
     return userCredential.user;
   } catch (error) {
     console.error('Error signing in anonymously:', error);
-    throw error;
+    throw new Error('Authentication failed. Please try again later.');
   }
 };
 

@@ -17,3 +17,7 @@
 **Vulnerability:** Raw error objects (FirebaseError) were being thrown directly from catch blocks in `src/lib/firestore.ts`, exposing internal database structure and query information to higher-level components which could potentially render them.
 **Learning:** While `console.error` logs the error for debugging purposes internally, re-throwing the original error object can expose sensitive backend details. A generic error string must be thrown instead.
 **Prevention:** Always log raw errors internally (`console.error('msg', error)`), but throw generic sanitized errors (`throw new Error('Generic msg')`) to caller code interacting with the UI.
+## 2026-05-14 - [Information Leakage Defense]
+**Vulnerability:** Raw error objects (e.g., FirebaseError) were being thrown directly from catch blocks in `src/lib/firebase.ts` or set in React state in `src/hooks/useHabits.ts`, exposing internal database structure and authentication query information to the frontend.
+**Learning:** While `console.error` logs the error for debugging purposes internally, re-throwing the original error object or setting it in state can expose sensitive backend details or stack traces to higher-level components which could potentially render them or be intercepted.
+**Prevention:** Always log raw errors internally (`console.error('msg', error)`), but throw or use generic sanitized errors (`throw new Error('Generic msg')` or `setError(new Error(...))`) to caller code interacting with the UI.
