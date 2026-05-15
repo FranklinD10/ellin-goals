@@ -42,6 +42,9 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
 };
 
 export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const q = query(
     collection(db, 'habits'),
     where('user_id', '==', userId),
@@ -65,6 +68,9 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
 };
 
 export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const now = new Date();
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
@@ -116,6 +122,9 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
 };
 
 export const getHabitLogs = async (habitId: string, startDate: Date) => {
+  if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
+    throw new Error('Invalid habitId');
+  }
   const primaryConstraints = [
     where('habit_id', '==', habitId),
     where('date', '>=', Timestamp.fromDate(startDate)),
@@ -150,6 +159,12 @@ export const logHabitCompletion = async (
   date: Date, 
   completed: boolean
 ) => {
+  if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
+    throw new Error('Invalid habitId');
+  }
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const localDate = startOfDay(date);
   const docId = `${habitId}_${localDate.toISOString().split('T')[0]}_${userId}`;
   
@@ -184,6 +199,9 @@ export const logHabitCompletion = async (
 };
 
 export const deleteHabit = async (habitId: string) => {
+  if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
+    throw new Error('Invalid habitId');
+  }
   const batch = writeBatch(db);
   
   // Mark habit as deleted instead of actually deleting it
@@ -226,6 +244,9 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
 }
 
 export const saveUserSettings = async (userId: string, settings: UserSettings) => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     // First, check if the document exists
@@ -252,12 +273,18 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
 };
 
 export const getUserSettings = async (userId: string) => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const docRef = doc(db, 'user_settings', userId);
   const docSnap = await getDoc(docRef);
   return docSnap.exists() ? docSnap.data() : null;
 };
 
 export const getUserData = async (userId: UserType): Promise<UserData | null> => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   try {
     const userRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     const userDoc = await getDoc(userRef);
