@@ -22,6 +22,14 @@ import { ClientIndexManager } from '../utils/clientIndexManager';
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id) throw new Error('user_id is undefined');
   
+  // Defensive validation against excessively large entries
+  if (habit.name && habit.name.length > 100) {
+    throw new Error('Habit name exceeds maximum allowed length');
+  }
+  if (habit.category && habit.category.length > 50) {
+    throw new Error('Habit category exceeds maximum allowed length');
+  }
+
   try {
     const docRef = await addDoc(collection(db, 'habits'), {
       ...habit,

@@ -90,9 +90,8 @@ export default function Manage() {
   const { showNotification } = useNotification();
 
   const handleAddHabit = async () => {
-    // Sanitize input to prevent XSS
-    const sanitizedName = habitName.replace(/[<>]/g, '');
-    const trimmedName = sanitizedName.trim();
+    // Rely on React's automatic DOM escaping for XSS prevention
+    const trimmedName = habitName.trim();
     if (!trimmedName || !category || !currentUser) return;
 
     // Security validation
