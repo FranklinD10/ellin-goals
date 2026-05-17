@@ -10,6 +10,7 @@ export default function Stats() {
   
   useEffect(() => {
     const fetchAnalytics = async () => {
+      setLoading(true);
       if (!currentUser) {
         setLoading(false);
         return;
