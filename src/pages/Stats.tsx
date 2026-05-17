@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Container, Typography, CircularProgress, Alert, Table, TableHead, TableBody, TableRow, TableCell, Paper } from '@mui/material';
 import { getAnalytics } from '../lib/firestore';
+import { useUser } from '../contexts/UserContext';
 
 export default function Stats() {
+  const { currentUser } = useUser();
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchAnalytics = async () => {
+      setLoading(true);
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
       try {
         const data = await getAnalytics();
         setAnalytics(data);
@@ -17,7 +24,15 @@ export default function Stats() {
       setLoading(false);
     };
     fetchAnalytics();
-  }, []);
+  }, [currentUser]);
+
+  if (!currentUser) {
+    return (
+      <Container sx={{ py: 3 }}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Container>
+    );
+  }
 
   if (loading) {
     return (
