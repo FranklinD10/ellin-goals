@@ -51,9 +51,11 @@ export default function Dashboard() {
       }
       setError(null);
 
+      if (!currentUser) return;
+
       const [userHabits, todayLogs] = await Promise.all([
-        getUserHabits(currentUser!),
-        getTodayLogs(currentUser!)
+        getUserHabits(currentUser),
+        getTodayLogs(currentUser)
       ]);
 
       if (!isTransitioning) {
@@ -207,6 +209,15 @@ export default function Dashboard() {
   }, [completedHabits, filterHabits, loading, error]);
 
   // Show loading state while transitioning or loading
+  // Security Concern: Authorization Bypass - Prevent unauthenticated data access by verifying user session
+  if (!currentUser) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Box>
+    );
+  }
+
   if (isTransitioning || loading) {
     return (
       <Stack spacing={2} sx={{ p: 2 }}>
