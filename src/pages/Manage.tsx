@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Container, TextField, Button, Stack, Card, IconButton, Typography, Box, MenuItem, CircularProgress } from '@mui/material';
+import { Container, TextField, Button, Stack, Card, IconButton, Typography, Box, MenuItem, CircularProgress, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import { useUser } from '../contexts/UserContext';
 import { addHabit, deleteHabit, getUserHabits } from '../lib/firestore';
-import { Habit } from '../types';
+import { Habit, UserType } from '../types';
 import CategoryBadge from '../components/CategoryBadge';
 import { useTheme } from '../contexts/ThemeContext';
 import { useHabits } from '../hooks/useHabits';
@@ -18,6 +18,8 @@ function HabitsList() {
   const { habits, loading, error } = useHabits(currentUser!);
   const { theme } = useTheme();
   const { showNotification } = useNotification();
+
+  if (!currentUser) return null;
 
   const handleDelete = async (habitId: string, habitName: string) => {
     try {
@@ -145,6 +147,15 @@ export default function Manage() {
     e.preventDefault();
     await handleAddHabit();
   };
+
+  // Security Concern: Authorization Bypass - Prevent unauthenticated data access by verifying user session
+  if (!currentUser) {
+    return (
+      <Container maxWidth="sm" sx={{ py: 3 }}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Container>
+    );
+  }
 
   return (
     <PageTransition>

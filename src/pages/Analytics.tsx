@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Grid, Card, Box, Container, Paper, CircularProgress } from '@mui/material';
+import { Stack, Typography, Grid, Card, Box, Container, Paper, CircularProgress, Alert } from '@mui/material';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
   BarChart, Bar, Tooltip, PieChart, Pie, Cell, Legend, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
@@ -42,8 +42,12 @@ export default function Analytics() {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
       try {
-        const userHabits = await getUserHabits(currentUser!);
+        const userHabits = await getUserHabits(currentUser);
         setHabits(userHabits);
 
         // Get logs for the past 7 days for each habit
@@ -150,6 +154,15 @@ export default function Analytics() {
     }
     return areaData;
   };
+
+  // Security Concern: Authorization Bypass - Prevent unauthenticated data access by verifying user session
+  if (!currentUser) {
+    return (
+      <Stack spacing={3} p={2}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Stack>
+    );
+  }
 
   if (loading) {
     return (
