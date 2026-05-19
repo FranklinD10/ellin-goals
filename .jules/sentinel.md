@@ -29,3 +29,8 @@
 **Vulnerability:** The `/stats` endpoint component `src/pages/Stats.tsx` was missing an authentication check, potentially exposing all user analytics to unauthenticated users.
 **Learning:** In React applications utilizing context-based authentication (e.g., `useUser`), it's crucial to verify the presence of an authenticated user on all non-public pages before initiating any data fetching or rendering. Failure to do so can result in unauthorized data exposure.
 **Prevention:** Always verify `currentUser` from the user context on protected routes. Implement early returns with an error message (e.g., `<Alert severity="error">Unauthorized access</Alert>`) to explicitly reject unauthenticated attempts before any backend queries are made.
+
+## 2024-05-19 - Prevent sensitive info leakage in production console logs
+**Vulnerability:** Information Disclosure
+**Learning:** `console.error` calls with raw error objects were being logged directly in `src/lib/firestore.ts`. In production environments, this can expose sensitive internal information (e.g., database schema, query structures, or potentially user details inside Firebase error objects) to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
+**Prevention:** Wrap `console.error` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors, especially those originating from external services or databases. Always assume raw error objects contain sensitive information and sanitize or suppress them in production.
