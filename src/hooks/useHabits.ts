@@ -27,7 +27,7 @@ export function useHabits(userId: UserType) {
         setLoading(false);
       },
       (error) => {
-        console.error('Error fetching habits:', error);
+        if (import.meta.env.DEV) { console.error('Error fetching habits:', error); }
         setError(new Error('An error occurred while fetching habits.'));
         setLoading(false);
       }

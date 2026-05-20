@@ -18,7 +18,7 @@ const checkForUpdates = async () => {
       await registration.update();
       return registration.waiting ? true : false;
     } catch (error) {
-      console.error('Error checking for updates:', error);
+      if (import.meta.env.DEV) { console.error('Error checking for updates:', error); }
       return false;
     }
   }

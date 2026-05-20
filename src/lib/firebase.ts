@@ -37,7 +37,7 @@ export const signInAnonymousUser = async () => {
     const userCredential = await signInAnonymously(auth);
     return userCredential.user;
   } catch (error) {
-    console.error('Error signing in anonymously:', error);
+    if (import.meta.env.DEV) { console.error('Error signing in anonymously:', error); }
     throw new Error('Authentication failed. Please try again later.');
   }
 };
@@ -51,7 +51,7 @@ const initAnalytics = async () => {
     }
     return null;
   } catch (error) {
-    console.warn('Analytics initialization failed:', error);
+    if (import.meta.env.DEV) { console.warn('Analytics initialization failed:', error); }
     return null;
   }
 };
@@ -60,6 +60,6 @@ initAnalytics();
 
 // Set persistence
 setPersistence(auth, browserLocalPersistence)
-  .catch(console.warn);
+  .catch((err) => { if (import.meta.env.DEV) { console.warn(err); } });
 
 export default db;

@@ -45,7 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       await saveUserSettings(currentUser, settings);
       setLastSyncedSettings(settings);
     } catch (error) {
-      console.error('Failed to sync settings:', error);
+      if (import.meta.env.DEV) { console.error('Failed to sync settings:', error); }
       if (lastSyncedSettings) {
         setColorScheme(lastSyncedSettings.theme);
         setThemeColor(lastSyncedSettings.themeColor);

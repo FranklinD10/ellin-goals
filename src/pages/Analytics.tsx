@@ -60,7 +60,7 @@ export default function Analytics() {
         const allLogs = await Promise.all(logsPromises);
         setHabitLogs(allLogs.flat());
       } catch (err) {
-        console.error('Error loading analytics data:', err);
+        if (import.meta.env.DEV) { console.error('Error loading analytics data:', err); }
       } finally {
         setLoading(false);
       }

@@ -34,3 +34,8 @@
 **Vulnerability:** Information Disclosure
 **Learning:** `console.error` calls with raw error objects were being logged directly in `src/lib/firestore.ts`. In production environments, this can expose sensitive internal information (e.g., database schema, query structures, or potentially user details inside Firebase error objects) to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
 **Prevention:** Wrap `console.error` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors, especially those originating from external services or databases. Always assume raw error objects contain sensitive information and sanitize or suppress them in production.
+
+## 2026-05-20 - Prevent sensitive info leakage in production console logs
+**Vulnerability:** Information Disclosure
+**Learning:** `console.error` calls with raw error objects were being logged directly in multiple `catch` blocks and Promise rejections across the codebase. In production environments, this can expose sensitive internal information (e.g., database schema, query structures, or potentially user details inside Firebase error objects) to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
+**Prevention:** Wrap `console.error` and `console.warn` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors, especially those originating from external services or databases. Always assume raw error objects contain sensitive information and sanitize or suppress them in production.

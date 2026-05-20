@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // If no user, sign in anonymously
           if (!user) {
-            signInAnonymousUser().catch(console.error);
+            signInAnonymousUser().catch((err) => { if (import.meta.env.DEV) { console.error(err); } });
           }
         });
         return unsubscribe;
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signInAnonymousUser();
     } catch (error) {
-      console.error('Failed to sign in:', error);
+      if (import.meta.env.DEV) { console.error('Failed to sign in:', error); }
     }
   };
 

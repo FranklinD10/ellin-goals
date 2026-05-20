@@ -81,7 +81,7 @@ export default function Dashboard() {
         initialLoadDone.current = true;
       }
     } catch (err) {
-      console.error('Error loading data:', err);
+      if (import.meta.env.DEV) { console.error('Error loading data:', err); }
       if (!isTransitioning) {
         setError('Failed to load habits');
       }
@@ -173,7 +173,7 @@ export default function Dashboard() {
         await loadData();
       }
     } catch (error) {
-      console.error('Error toggling habit:', error);
+      if (import.meta.env.DEV) { console.error('Error toggling habit:', error); }
       // Revert optimistic update on error
       optimisticUpdates.delete(habitId);
       if (isCompleted) {
