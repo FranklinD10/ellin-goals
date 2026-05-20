@@ -19,7 +19,7 @@ export default function Stats() {
         const data = await getAnalytics();
         setAnalytics(data);
       } catch (error) {
-        console.error(error);
+        if (import.meta.env.DEV) { console.error(error); }
       }
       setLoading(false);
     };

@@ -49,7 +49,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const data = await getUserData(currentUser);
         setUserData(data);
       } catch (error) {
-        console.error('Error loading user data:', error);
+        if (import.meta.env.DEV) { console.error('Error loading user data:', error); }
         showNotification({
           title: 'Error',
           message: 'Failed to load user data',

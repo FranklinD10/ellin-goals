@@ -30,7 +30,7 @@ function HabitsList() {
         color: 'success'
       });
     } catch (error) {
-      console.error('Error deleting habit:', error);
+      if (import.meta.env.DEV) { console.error('Error deleting habit:', error); }
       showNotification({
         title: 'Error',
         message: 'Failed to delete habit. Please try again.',
@@ -132,7 +132,7 @@ export default function Manage() {
         color: 'success'
       });
     } catch (error) {
-      console.error('Error adding habit:', error);
+      if (import.meta.env.DEV) { console.error('Error adding habit:', error); }
       showNotification({
         title: 'Error',
         message: 'Failed to add habit. Please try again.',
