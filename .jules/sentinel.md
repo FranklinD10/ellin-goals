@@ -39,3 +39,7 @@
 **Vulnerability:** Information Disclosure
 **Learning:** `console.error` calls with raw error objects were being logged directly in multiple `catch` blocks and Promise rejections across the codebase. In production environments, this can expose sensitive internal information (e.g., database schema, query structures, or potentially user details inside Firebase error objects) to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
 **Prevention:** Wrap `console.error` and `console.warn` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors, especially those originating from external services or databases. Always assume raw error objects contain sensitive information and sanitize or suppress them in production.
+## 2026-05-21 - [Missing Authorization Check in HealthCheck Component]
+**Vulnerability:** The HealthCheck component was fetching data from the database using `getDocs` inside a `useEffect` and rendering health status without verifying if the user was authenticated.
+**Learning:** React components that trigger database operations or show system status must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or cause permission errors.
+**Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in both `useEffect` (for data fetches) and the component render path.

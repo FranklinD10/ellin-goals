@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Stack, Card, Typography, Box, CircularProgress } from '@mui/material';
+import { Container, Stack, Card, Typography, Box, CircularProgress, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { collection, getDocs } from 'firebase/firestore';
@@ -17,6 +17,8 @@ const HealthCheck: React.FC = () => {
   const [checks, setChecks] = useState<HealthStatus[]>([]);
 
   useEffect(() => {
+    if (!currentUser) return; // Prevent unauthorized data fetch
+
     const runHealthChecks = async () => {
       const results: HealthStatus[] = [];
 
@@ -65,6 +67,15 @@ const HealthCheck: React.FC = () => {
 
     runHealthChecks();
   }, [currentUser]);
+
+  // Security Concern: Authorization Bypass - Prevent unauthenticated data access by verifying user session
+  if (!currentUser) {
+    return (
+      <Container sx={{ py: 3 }}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
