@@ -50,7 +50,7 @@ class AudioManager {
       const audioBuffer = await this.audioContext!.decodeAudioData(arrayBuffer);
       this.audioCache.set(id, audioBuffer);
     } catch (error) {
-      console.warn('Failed to preload audio:', error);
+      if (import.meta.env.DEV) { console.warn('Failed to preload audio:', error); }
     }
   }
 
@@ -63,7 +63,7 @@ class AudioManager {
       source.connect(this.audioContext.destination);
       source.start(0);
     } catch (error) {
-      console.warn('Failed to play audio:', error);
+      if (import.meta.env.DEV) { console.warn('Failed to play audio:', error); }
     }
   }
 }

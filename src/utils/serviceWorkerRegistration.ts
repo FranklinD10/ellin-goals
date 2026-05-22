@@ -15,18 +15,18 @@ export const registerServiceWorker = async () => {
             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
           }
         } catch (error) {
-          console.error('Periodic update check failed:', error);
+          if (import.meta.env.DEV) { console.error('Periodic update check failed:', error); }
         }
       }, 30 * 60 * 1000);
 
       // Immediate first check
       registration.update().catch(error => {
-        console.error('Initial update check failed:', error);
+        if (import.meta.env.DEV) { console.error('Initial update check failed:', error); }
       });
 
       return registration;
     } catch (error) {
-      console.error('Service worker registration failed:', error);
+      if (import.meta.env.DEV) { console.error('Service worker registration failed:', error); }
       return null;
     }
   }
@@ -79,7 +79,7 @@ export const checkForUpdates = async () => {
 
       return false;
     } catch (error) {
-      console.error('Error checking for updates:', error);
+      if (import.meta.env.DEV) { console.error('Error checking for updates:', error); }
       return false;
     }
   }
