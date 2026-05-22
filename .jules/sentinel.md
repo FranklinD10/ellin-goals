@@ -43,3 +43,8 @@
 **Vulnerability:** The HealthCheck component was fetching data from the database using `getDocs` inside a `useEffect` and rendering health status without verifying if the user was authenticated.
 **Learning:** React components that trigger database operations or show system status must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or cause permission errors.
 **Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in both `useEffect` (for data fetches) and the component render path.
+
+## 2026-05-22 - Prevent sensitive info leakage in production console logs
+**Vulnerability:** Information Disclosure
+**Learning:** `console.error`, `console.warn`, and `console.info` calls were being used in the codebase without checking the environment, particularly for service worker registration, audio loading, fallback database queries, and indexing operations. In production environments, this could leak operational details to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
+**Prevention:** Wrap `console.error`, `console.warn`, and `console.info` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors or logging state that isn't necessary for production users.

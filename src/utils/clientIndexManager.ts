@@ -31,7 +31,7 @@ export class ClientIndexManager {
 
           return results;
         } catch (fallbackError) {
-          console.error('Fallback query failed:', fallbackError);
+          if (import.meta.env.DEV) { console.error('Fallback query failed:', fallbackError); }
           return [];
         }
       }
