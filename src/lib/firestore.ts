@@ -241,6 +241,9 @@ export const getAnalytics = async () => {
 };
 
 export function subscribeToHabits(userId: string, callback: (habits: Habit[]) => void) {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const q = query(collection(db, 'habits'), where('userId', '==', userId));
   return onSnapshot(q, (snapshot) => {
     const habits = snapshot.docs.map(doc => ({
