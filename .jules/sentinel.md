@@ -48,3 +48,8 @@
 **Vulnerability:** Information Disclosure
 **Learning:** `console.error`, `console.warn`, and `console.info` calls were being used in the codebase without checking the environment, particularly for service worker registration, audio loading, fallback database queries, and indexing operations. In production environments, this could leak operational details to users who check the browser console. This breaches the principle of failing securely, as errors should not leak operational details.
 **Prevention:** Wrap `console.error`, `console.warn`, and `console.info` logs with an environment check like `if (import.meta.env.DEV) { console.error(...); }` when handling internal errors or logging state that isn't necessary for production users.
+
+## 2026-05-23 - [Missing Security Headers]
+**Vulnerability:** Missing security headers in `netlify.toml` leaves the application vulnerable to clickjacking, MIME-type sniffing, and cross-site scripting (XSS).
+**Learning:** Even static/SPA sites built on platforms like Netlify require explicit HTTP security headers for defense-in-depth. Without them, browsers lack instructions on how to handle framing, MIME types, or script execution boundaries.
+**Prevention:** Always define a `[[headers]]` block in `netlify.toml` (or equivalent configuration) configuring standard security headers (CSP, X-Frame-Options, X-Content-Type-Options, etc.) for all routes.
