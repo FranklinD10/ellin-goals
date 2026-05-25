@@ -53,3 +53,8 @@
 **Vulnerability:** Missing security headers in `netlify.toml` leaves the application vulnerable to clickjacking, MIME-type sniffing, and cross-site scripting (XSS).
 **Learning:** Even static/SPA sites built on platforms like Netlify require explicit HTTP security headers for defense-in-depth. Without them, browsers lack instructions on how to handle framing, MIME types, or script execution boundaries.
 **Prevention:** Always define a `[[headers]]` block in `netlify.toml` (or equivalent configuration) configuring standard security headers (CSP, X-Frame-Options, X-Content-Type-Options, etc.) for all routes.
+
+## 2026-05-24 - [Insecure Content Security Policy (CSP)]
+**Vulnerability:** The application's Content Security Policy (CSP), specified in both `index.html` and `netlify.toml`, incorrectly included the `'unsafe-eval'` directive in its `script-src` definition.
+**Learning:** Permitting `'unsafe-eval'` in a CSP significantly undermines its effectiveness against Cross-Site Scripting (XSS) attacks by allowing execution of code from strings via functions like `eval()`, `setTimeout()`, and `setInterval()`. For a compiled production React application, this directive is rarely necessary and introduces severe risk.
+**Prevention:** Always omit `'unsafe-eval'` from production Content Security Policies. Modern frameworks like React (when compiled) do not require it. When configuring CSP in multiple places (e.g., dynamically in HTML and statically in server configs), ensure all definitions are consistently secure.
