@@ -23,7 +23,7 @@ function HabitsList() {
 
   const handleDelete = async (habitId: string, habitName: string) => {
     try {
-      await deleteHabit(habitId);
+      await deleteHabit(habitId, currentUser);
       showNotification({
         title: 'Success',
         message: `Habit "${habitName}" was deleted successfully`,

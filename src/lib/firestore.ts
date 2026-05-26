@@ -206,14 +206,28 @@ export const logHabitCompletion = async (
   }
 };
 
-export const deleteHabit = async (habitId: string) => {
+export const deleteHabit = async (habitId: string, userId: string) => {
   if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
     throw new Error('Invalid habitId');
   }
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
+
+  const habitRef = doc(db, 'habits', habitId);
+  const habitSnap = await getDoc(habitRef);
+
+  if (!habitSnap.exists()) {
+    throw new Error('Habit not found');
+  }
+
+  if (habitSnap.data().user_id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const batch = writeBatch(db);
   
   // Mark habit as deleted instead of actually deleting it
-  const habitRef = doc(db, 'habits', habitId);
   batch.update(habitRef, { 
     deleted: true,
     deletedAt: Timestamp.now() 
