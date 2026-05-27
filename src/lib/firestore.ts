@@ -173,6 +173,17 @@ export const logHabitCompletion = async (
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
+
+  // Security Concern: IDOR - Authorize mutation by verifying the habit belongs to the user
+  const habitRef = doc(db, 'habits', habitId);
+  const habitSnap = await getDoc(habitRef);
+  if (!habitSnap.exists()) {
+    throw new Error('Habit not found');
+  }
+  if (habitSnap.data().user_id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const localDate = startOfDay(date);
   const docId = `${habitId}_${localDate.toISOString().split('T')[0]}_${userId}`;
   
