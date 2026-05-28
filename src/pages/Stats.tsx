@@ -16,7 +16,7 @@ export default function Stats() {
         return;
       }
       try {
-        const data = await getAnalytics();
+        const data = await getAnalytics(currentUser);
         setAnalytics(data);
       } catch (error) {
         if (import.meta.env.DEV) { console.error(error); }

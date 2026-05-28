@@ -254,9 +254,13 @@ export const deleteHabit = async (habitId: string, userId: string) => {
   await batch.commit();
 };
 
-export const getAnalytics = async () => {
+export const getAnalytics = async (userId: string) => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   try {
-    const snapshot = await getDocs(collection(db, 'analytics'));
+    const q = query(collection(db, 'analytics'), where('user_id', '==', userId));
+    const snapshot = await getDocs(q);
     const analytics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return analytics;
   } catch (error) {
