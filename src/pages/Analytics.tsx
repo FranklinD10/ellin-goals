@@ -55,7 +55,7 @@ export default function Analytics() {
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
         const logsPromises = userHabits.map(habit => 
-          getHabitLogs(habit.id, sevenDaysAgo)
+          getHabitLogs(habit.id, currentUser, sevenDaysAgo)
         );
         const allLogs = await Promise.all(logsPromises);
         setHabitLogs(allLogs.flat());

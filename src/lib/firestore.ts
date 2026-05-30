@@ -129,19 +129,24 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
   }
 };
 
-export const getHabitLogs = async (habitId: string, startDate: Date) => {
+export const getHabitLogs = async (habitId: string, userId: string, startDate: Date) => {
   if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
     throw new Error('Invalid habitId');
   }
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error('Invalid userId');
+  }
   const primaryConstraints = [
     where('habit_id', '==', habitId),
+    where('user_id', '==', userId),
     where('date', '>=', Timestamp.fromDate(startDate)),
     where('deleted', '!=', true),
     orderBy('date', 'desc')
   ];
 
   const fallbackConstraints = [
-    where('habit_id', '==', habitId)
+    where('habit_id', '==', habitId),
+    where('user_id', '==', userId)
   ];
 
   try {
@@ -153,7 +158,7 @@ export const getHabitLogs = async (habitId: string, startDate: Date) => {
         if (!log.date) return false;
         const logDate = (log.date as Timestamp).toDate();
         const isDeleted = log.deleted === true;
-        return logDate >= startDate && !isDeleted;
+        return logDate >= startDate && !isDeleted && log.user_id === userId;
       }
     );
   } catch (error) {
