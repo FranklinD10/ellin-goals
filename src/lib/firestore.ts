@@ -250,7 +250,7 @@ export const deleteHabit = async (habitId: string, userId: string) => {
   });
   
   // Optionally, mark all related logs as deleted too
-  const logsQuery = query(collection(db, 'habit_logs'), where('habit_id', '==', habitId));
+  const logsQuery = query(collection(db, 'habit_logs'), where('habit_id', '==', habitId), where('user_id', '==', userId));
   const snapshot = await getDocs(logsQuery);
   snapshot.docs.forEach((doc) => {
     batch.update(doc.ref, { deleted: true });
