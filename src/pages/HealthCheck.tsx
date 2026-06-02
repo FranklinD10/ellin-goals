@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Stack, Card, Typography, Box, CircularProgress, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useUser } from '../contexts/UserContext';
 
@@ -24,7 +24,9 @@ const HealthCheck: React.FC = () => {
 
       // Check 1: Firebase Connection
       try {
-        const snapshot = await getDocs(collection(db, 'habits'));
+        const snapshot = await getDocs(
+          query(collection(db, 'habits'), where('user_id', '==', currentUser), limit(1))
+        );
         results.push({
           name: 'Firebase Connection',
           status: 'ok',
