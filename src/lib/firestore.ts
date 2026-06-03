@@ -278,7 +278,13 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
-  const q = query(collection(db, 'habits'), where('userId', '==', userId));
+  // Security Concern: IDOR and DoS - Fixed user_id field for authorization and added limit constraint
+  const q = query(
+    collection(db, 'habits'),
+    where('user_id', '==', userId),
+    where('deleted', '==', false),
+    limit(50)
+  );
   return onSnapshot(q, (snapshot) => {
     const habits = snapshot.docs.map(doc => ({
       id: doc.id,
