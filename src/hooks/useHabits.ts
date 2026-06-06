@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Habit, UserType } from '../types';
 
@@ -14,7 +14,8 @@ export function useHabits(userId: UserType) {
       collection(db, 'habits'),
       where('user_id', '==', userId),
       where('deleted', '==', false),
-      orderBy('created_at', 'desc')
+      orderBy('created_at', 'desc'),
+      limit(50)
     );
 
     const unsubscribe = onSnapshot(q, 

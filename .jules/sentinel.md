@@ -83,3 +83,8 @@
 **Vulnerability:** The `subscribeToHabits` function in `src/lib/firestore.ts` queried using `where('userId', '==', userId)` instead of `user_id`, preventing correct authorization filtering. Additionally, it lacked a soft-deletion filter (`deleted == false`) and a `limit` constraint, presenting risks of IDOR, data leakage of deleted items, and potential Denial of Service (DoS) from unbounded queries.
 **Learning:** Even internal or loosely used data fetching functions must enforce strict bounding logic and authorization constraints matching the actual schema (`user_id`). Client-side subscriptions to full collections must always be bounded by user ownership, active status (not deleted), and reasonable limits to prevent accidental exposure or performance degradation.
 **Prevention:** Always verify schema field names when implementing authorization filters (`where('user_id', '==', userId)`). Implement standard defensive filters for soft-deleted items (`where('deleted', '==', false)`) and attach a `limit` constraint (e.g., `limit(50)`) for subscriptions or lists.
+
+## 2026-06-05 - [Missing Query Bounds in useHabits hook]
+**Vulnerability:** The `useHabits` hook in `src/hooks/useHabits.ts` lacked a `limit` constraint, presenting risks of potential Denial of Service (DoS) from unbounded queries reading too many documents.
+**Learning:** Client-side subscriptions or fetching to full collections must always be bounded by reasonable limits to prevent accidental exposure, high database bills, or performance degradation due to unbounded reads.
+**Prevention:** Always attach a `limit` constraint (e.g., `limit(50)`) for subscriptions or lists fetching documents in the client hooks, especially when querying items that can grow over time.
