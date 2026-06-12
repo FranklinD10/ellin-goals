@@ -88,3 +88,8 @@
 **Vulnerability:** The `useHabits` hook in `src/hooks/useHabits.ts` lacked a `limit` constraint, presenting risks of potential Denial of Service (DoS) from unbounded queries reading too many documents.
 **Learning:** Client-side subscriptions or fetching to full collections must always be bounded by reasonable limits to prevent accidental exposure, high database bills, or performance degradation due to unbounded reads.
 **Prevention:** Always attach a `limit` constraint (e.g., `limit(50)`) for subscriptions or lists fetching documents in the client hooks, especially when querying items that can grow over time.
+
+## 2025-06-08 - [Dependency Vulnerability]
+**Vulnerability:** A high severity vulnerability (GHSA-5375-pq7m-f5r2 and GHSA-99f4-grh7-6pcq) was discovered in the `@grpc/grpc-js` dependency. A malformed request or compressed message could cause a server or client crash (Denial of Service).
+**Learning:** Supply chain dependencies interacting with external APIs (like Firebase communicating via gRPC) can crash the client environment if they fail to handle malformed inputs correctly.
+**Prevention:** Track indirect dependency updates through lockfiles carefully and prioritize auditing network-facing libraries (like gRPC) even in frontend applications to prevent client-side DoS conditions.
