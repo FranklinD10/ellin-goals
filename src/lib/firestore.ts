@@ -141,12 +141,14 @@ export const getHabitLogs = async (habitId: string, userId: string, startDate: D
     where('user_id', '==', userId),
     where('date', '>=', Timestamp.fromDate(startDate)),
     where('deleted', '!=', true),
-    orderBy('date', 'desc')
+    orderBy('date', 'desc'),
+    limit(1000)
   ];
 
   const fallbackConstraints = [
     where('habit_id', '==', habitId),
-    where('user_id', '==', userId)
+    where('user_id', '==', userId),
+    limit(1000)
   ];
 
   try {
@@ -249,14 +251,28 @@ export const deleteHabit = async (habitId: string, userId: string) => {
     deletedAt: Timestamp.now() 
   });
   
-  // Optionally, mark all related logs as deleted too
+  // Delete logs in chunks of 400 to avoid exceeding the 500 operation limit per batch
   const logsQuery = query(collection(db, 'habit_logs'), where('habit_id', '==', habitId), where('user_id', '==', userId));
   const snapshot = await getDocs(logsQuery);
-  snapshot.docs.forEach((doc) => {
-    batch.update(doc.ref, { deleted: true });
-  });
   
-  await batch.commit();
+  // Create chunks of 400 docs
+  const chunks = [];
+  for (let i = 0; i < snapshot.docs.length; i += 400) {
+    chunks.push(snapshot.docs.slice(i, i + 400));
+  }
+
+  if (chunks.length === 0) {
+    await batch.commit();
+    return;
+  }
+
+  for (let i = 0; i < chunks.length; i++) {
+    const currentBatch = i === 0 ? batch : writeBatch(db);
+    chunks[i].forEach((doc) => {
+      currentBatch.update(doc.ref, { deleted: true });
+    });
+    await currentBatch.commit();
+  }
 };
 
 export const getAnalytics = async (userId: string) => {
@@ -264,7 +280,10 @@ export const getAnalytics = async (userId: string) => {
     throw new Error('Invalid userId');
   }
   try {
-    const q = query(collection(db, 'analytics'), where('user_id', '==', userId));
+    const q = query(
+      collection(db, 'analytics'),
+      where('user_id', '==', userId)
+    );
     const snapshot = await getDocs(q);
     const analytics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return analytics;
