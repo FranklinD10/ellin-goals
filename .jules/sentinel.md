@@ -93,3 +93,7 @@
 **Vulnerability:** A high severity vulnerability (GHSA-5375-pq7m-f5r2 and GHSA-99f4-grh7-6pcq) was discovered in the `@grpc/grpc-js` dependency. A malformed request or compressed message could cause a server or client crash (Denial of Service).
 **Learning:** Supply chain dependencies interacting with external APIs (like Firebase communicating via gRPC) can crash the client environment if they fail to handle malformed inputs correctly.
 **Prevention:** Track indirect dependency updates through lockfiles carefully and prioritize auditing network-facing libraries (like gRPC) even in frontend applications to prevent client-side DoS conditions.
+## 2026-06-10 - [Firestore Batch Operation Limit and DoS]
+**Vulnerability:** The `deleteHabit` function executed a batch update on all logs associated with a habit. If a habit had more than 500 logs, the operation would exceed Firestore's hard limit of 500 operations per batch, throwing an error and preventing the habit from being deleted. This acted as a functional bug and an application-level Denial of Service.
+**Learning:** Do not rely on unbounded reads for batch mutations, but also do not fix them by applying arbitrary read limits (e.g., `limit(490)`), as this silently orphans data. When dealing with bulk modifications in Firestore, always split operations into chunked batches (e.g. chunks of 400).
+**Prevention:** Implement batch chunking (looping over arrays of docs and creating new `writeBatch` instances) for any bulk deletion or update operation that could potentially exceed 500 documents.
