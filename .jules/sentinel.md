@@ -97,3 +97,8 @@
 **Vulnerability:** The `deleteHabit` function executed a batch update on all logs associated with a habit. If a habit had more than 500 logs, the operation would exceed Firestore's hard limit of 500 operations per batch, throwing an error and preventing the habit from being deleted. This acted as a functional bug and an application-level Denial of Service.
 **Learning:** Do not rely on unbounded reads for batch mutations, but also do not fix them by applying arbitrary read limits (e.g., `limit(490)`), as this silently orphans data. When dealing with bulk modifications in Firestore, always split operations into chunked batches (e.g. chunks of 400).
 **Prevention:** Implement batch chunking (looping over arrays of docs and creating new `writeBatch` instances) for any bulk deletion or update operation that could potentially exceed 500 documents.
+
+## 2026-06-21 - [Missing Query Bounds and DoS Vulnerability in getTodayLogs]
+**Vulnerability:** The `getTodayLogs` function in `src/lib/firestore.ts` queried the `habit_logs` collection by user and date without a `limit` constraint on the returned documents in both primary and fallback constraints. This introduced a Denial of Service (DoS) vulnerability, where an unbounded query could fetch excessively large amounts of data.
+**Learning:** In Firebase/Firestore, queries handling repetitive client-side actions (like fetching daily logs) must still implement reasonable safety bounds to prevent edge-case scaling issues or DoS vulnerabilities from over-fetching data, especially on fallback execution paths.
+**Prevention:** Always enforce reasonable limit constraints (e.g., `limit(1000)`) when fetching collections on the client side, even when filtered by user ID or date bounds.
