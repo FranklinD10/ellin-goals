@@ -95,9 +95,10 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
         where('user_id', '==', userId),
         where('date', '>=', Timestamp.fromDate(todayStart)),
         where('date', '<=', Timestamp.fromDate(todayEnd)),
-        where('deleted', '!=', true)
+        where('deleted', '!=', true),
+        limit(1000)
       ],
-      [where('user_id', '==', userId)],
+      [where('user_id', '==', userId), limit(1000)],
       (log) => {
         if (!log.date) return false;
         const logDate = (log.date as Timestamp).toDate();
