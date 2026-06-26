@@ -347,9 +347,14 @@ export const getUserSettings = async (userId: string) => {
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
-  const docRef = doc(db, 'user_settings', userId);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
+  try {
+    const docRef = doc(db, 'user_settings', userId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  } catch (error) {
+    if (import.meta.env.DEV) { console.error('Error fetching user settings', error); }
+    throw new Error('An error occurred while communicating with the database.');
+  }
 };
 
 export const getUserData = async (userId: UserType): Promise<UserData | null> => {
