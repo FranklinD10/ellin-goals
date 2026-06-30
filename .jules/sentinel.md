@@ -102,3 +102,7 @@
 **Vulnerability:** The `getTodayLogs` function in `src/lib/firestore.ts` queried the `habit_logs` collection by user and date without a `limit` constraint on the returned documents in both primary and fallback constraints. This introduced a Denial of Service (DoS) vulnerability, where an unbounded query could fetch excessively large amounts of data.
 **Learning:** In Firebase/Firestore, queries handling repetitive client-side actions (like fetching daily logs) must still implement reasonable safety bounds to prevent edge-case scaling issues or DoS vulnerabilities from over-fetching data, especially on fallback execution paths.
 **Prevention:** Always enforce reasonable limit constraints (e.g., `limit(1000)`) when fetching collections on the client side, even when filtered by user ID or date bounds.
+## 2026-06-30 - [Missing Input Validation in addHabit]
+**Vulnerability:** The `addHabit` function in `src/lib/firestore.ts` lacked length and type validation for the `user_id` input, presenting a risk for processing excessively large or malformed inputs.
+**Learning:** Even functions that receive typed objects on the client should implement strict runtime validation matching constraints applied elsewhere in the application, especially for IDs that dictate authorization scope.
+**Prevention:** Always validate runtime properties on critical inputs (like user IDs), checking that they are the expected primitive type and do not exceed reasonable boundaries (e.g., length <= 128 for Firebase UIDs) before interacting with external APIs.

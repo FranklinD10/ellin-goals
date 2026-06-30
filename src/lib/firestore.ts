@@ -20,7 +20,9 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { ClientIndexManager } from '../utils/clientIndexManager';
 
 export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
-  if (!habit.user_id) throw new Error('user_id is undefined');
+  if (!habit.user_id || typeof habit.user_id !== 'string' || habit.user_id.length > 128) {
+    throw new Error('Invalid userId');
+  }
   
   // Defensive validation against excessively large entries
   if (habit.name && habit.name.length > 100) {
