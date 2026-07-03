@@ -350,9 +350,12 @@ export const getUserSettings = async (userId: string) => {
     throw new Error('Invalid userId');
   }
   try {
-    const docRef = doc(db, 'user_settings', userId);
+    const docRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() : null;
+    if (docSnap.exists()) {
+      return docSnap.data().settings || null;
+    }
+    return null;
   } catch (error) {
     if (import.meta.env.DEV) { console.error('Error fetching user settings', error); }
     throw new Error('An error occurred while communicating with the database.');
