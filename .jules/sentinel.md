@@ -106,3 +106,7 @@
 **Vulnerability:** The `addHabit` function in `src/lib/firestore.ts` lacked length and type validation for the `user_id` input, presenting a risk for processing excessively large or malformed inputs.
 **Learning:** Even functions that receive typed objects on the client should implement strict runtime validation matching constraints applied elsewhere in the application, especially for IDs that dictate authorization scope.
 **Prevention:** Always validate runtime properties on critical inputs (like user IDs), checking that they are the expected primitive type and do not exceed reasonable boundaries (e.g., length <= 128 for Firebase UIDs) before interacting with external APIs.
+## 2026-07-02 - [Fix Data Inconsistency / Logic bug in getUserSettings]
+**Vulnerability:** A data inconsistency existed where `saveUserSettings` was writing user settings to `doc(db, 'users', \`\${userId.toLowerCase()}-default\`)` inside a `settings` property, while `getUserSettings` was reading from `doc(db, 'user_settings', userId)`. This could lead to a functional issue and unrecorded settings.
+**Learning:** Always ensure read and write paths for the same logical entity in Firestore point to the same collection and document path and use the same data structure, avoiding split-brain configurations where data is written to one place but read from another.
+**Prevention:** Establish a single source of truth for collection names and paths, and consider creating helper functions for generating document references to avoid typos and logic errors.
