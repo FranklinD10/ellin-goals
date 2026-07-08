@@ -114,3 +114,8 @@
 **Vulnerability:** The Content Security Policy (CSP) defined in `netlify.toml` was significantly stricter than the dynamically generated one in `index.html`, omitting required Firebase WebSocket URLs (`wss://*.firebaseio.com`), Google Fonts (`https:` in font-src), and various analytics domains. This would cause unexpected blocking in production when Netlify applies the HTTP headers, potentially breaking real-time syncing and styling.
 **Learning:** When defense-in-depth is applied by duplicating security rules (like CSP in both meta tags and HTTP response headers), they must be kept tightly synchronized. A stricter HTTP header will override a looser meta tag, breaking intended application functionality if dependencies aren't accounted for.
 **Prevention:** Maintain a single source of truth for CSP generation or establish a strict synchronization process when modifying policies across `index.html` and `netlify.toml`.
+
+## 2026-07-08 - [Missing Authorization Check in Settings Component]
+**Vulnerability:** The Settings component `src/pages/Settings.tsx` was rendering its UI and reading local settings without verifying if the user was authenticated.
+**Learning:** React components that show user settings must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized access.
+**Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in the component render path.
