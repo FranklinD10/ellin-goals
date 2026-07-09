@@ -1,6 +1,7 @@
-import { Box, Paper, Stack, Typography, ToggleButtonGroup, ToggleButton, IconButton, Tooltip, Divider, Grid } from '@mui/material';
+import { Box, Paper, Stack, Typography, ToggleButtonGroup, ToggleButton, IconButton, Tooltip, Divider, Grid, Alert, Container } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../contexts/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 import PaletteIcon from '@mui/icons-material/Palette';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -76,7 +77,17 @@ const ThemeButton = memo(({ color, label, onClick, selected }: ThemeButtonProps)
 ThemeButton.displayName = 'ThemeButton';
 
 export default function Settings() {
+  const { currentUser } = useUser();
   const { colorScheme, toggleColorScheme, setThemeColor, isSelected } = useTheme();
+
+  // Security Concern: Authorization Bypass - Prevent unauthenticated access
+  if (!currentUser) {
+    return (
+      <Container sx={{ py: 3 }}>
+        <Alert severity="error">Unauthorized access</Alert>
+      </Container>
+    );
+  }
 
   return (
     <PageTransition>
