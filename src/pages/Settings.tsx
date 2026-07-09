@@ -78,10 +78,10 @@ ThemeButton.displayName = 'ThemeButton';
 
 export default function Settings() {
   const { colorScheme, toggleColorScheme, setThemeColor, isSelected } = useTheme();
-  const { currentUser } = useUser();
+  const { currentUser, isTransitioning } = useUser();
 
   // Security Concern: Authorization Bypass - Prevent unauthenticated data access by verifying user session
-  if (!currentUser) {
+  if (!currentUser && !isTransitioning) {
     return (
       <Container sx={{ py: 3 }}>
         <Alert severity="error">Unauthorized access</Alert>
