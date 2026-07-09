@@ -33,10 +33,18 @@ export default defineConfig({
   },  build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-mui': ['@mui/material', '@mui/icons-material'],
-          'vendor-charts': ['recharts'],
-          'vendor-motion': ['framer-motion'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('@mui/material') || id.includes('@mui/icons-material')) {
+              return 'vendor-mui';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+          }
         }
       }
     },

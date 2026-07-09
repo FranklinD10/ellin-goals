@@ -115,6 +115,10 @@
 **Learning:** When defense-in-depth is applied by duplicating security rules (like CSP in both meta tags and HTTP response headers), they must be kept tightly synchronized. A stricter HTTP header will override a looser meta tag, breaking intended application functionality if dependencies aren't accounted for.
 **Prevention:** Maintain a single source of truth for CSP generation or establish a strict synchronization process when modifying policies across `index.html` and `netlify.toml`.
 
+## 2026-07-08 - [Missing Authorization Check in Settings Component]
+**Vulnerability:** The Settings component `src/pages/Settings.tsx` was rendering its UI and reading local settings without verifying if the user was authenticated.
+**Learning:** React components that show user settings must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized access.
+**Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in the component render path.
 ## 2026-07-09 - [Missing Authorization Check in Settings Component]
 **Vulnerability:** The Settings component was rendering its contents without verifying if the user was authenticated, leading to unauthorized access to the application settings page.
 **Learning:** React components that render application state must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized users to modify application configuration.
