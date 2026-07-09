@@ -119,3 +119,7 @@
 **Vulnerability:** The Settings component `src/pages/Settings.tsx` was rendering its UI and reading local settings without verifying if the user was authenticated.
 **Learning:** React components that show user settings must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized access.
 **Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in the component render path.
+## 2026-07-09 - [Missing Authorization Check in Settings Component]
+**Vulnerability:** The Settings component was rendering its contents without verifying if the user was authenticated, leading to unauthorized access to the application settings page.
+**Learning:** React components that render application state must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized users to modify application configuration.
+**Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in the component render path (e.g., `<Alert severity="error">Unauthorized access</Alert>`).
