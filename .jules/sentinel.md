@@ -123,3 +123,8 @@
 **Vulnerability:** The Settings component was rendering its contents without verifying if the user was authenticated, leading to unauthorized access to the application settings page.
 **Learning:** React components that render application state must ensure that the user session is authenticated. Unauthenticated rendering might leak system state or allow unauthorized users to modify application configuration.
 **Prevention:** Ensure components correctly use authentication hooks like `useUser()` and have early returns in the component render path (e.g., `<Alert severity="error">Unauthorized access</Alert>`).
+
+## 2026-07-11 - [Fix Cross-User Data Contamination (IDOR via LocalStorage)]
+**Vulnerability:** The `getTodayLogs` function read all `habit_log_*` entries from `localStorage` indiscriminately, failing to filter by the active `userId`. This allowed local logs from one user to leak and merge into another user's session when multiple users share the same device/browser, acting as a client-side Insecure Direct Object Reference (IDOR) and cross-user data contamination.
+**Learning:** When retrieving local fallback or cached data (e.g., from `localStorage` or IndexedDB) that represents user-specific resources, client-side authorization and filtering must still be strictly enforced. Do not assume all locally stored data belongs to the currently active session.
+**Prevention:** Always apply a client-side filter (`filter(log => log.user_id === userId)`) when retrieving locally stored user data before merging it with backend results or rendering it in the UI.
