@@ -77,7 +77,6 @@ const ThemeButton = memo(({ color, label, onClick, selected }: ThemeButtonProps)
 ThemeButton.displayName = 'ThemeButton';
 
 export default function Settings() {
-  const { currentUser } = useUser();
   const { colorScheme, toggleColorScheme, setThemeColor, isSelected } = useTheme();
   const { currentUser, isTransitioning } = useUser();
 
