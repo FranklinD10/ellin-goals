@@ -89,7 +89,7 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
   const unsyncedLogs = Object.entries(localStorage)
     .filter(([key]) => key.startsWith('habit_log_'))
     .map(([_, value]) => JSON.parse(value))
-    .filter(log => log.user_id === userId); // Security: Prevent cross-user data contamination
+    .filter(log => log.user_id === userId); // Security Concern: Client-side IDOR - Filter local logs by current user
 
   try {
     const firebaseLogs = await ClientIndexManager.executeQueryWithFallback<HabitLog>(
