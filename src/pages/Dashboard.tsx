@@ -99,6 +99,9 @@ export default function Dashboard() {
       setCompletedHabits(new Set());
       setCompletionRate(0);
       setLoading(true);
+      // Reset fetch refs when user changes to ensure new user's data is fetched
+      initialLoadDone.current = false;
+      lastFetchRef.current = 0;
     } else {
       loadData();
     }
