@@ -31,11 +31,14 @@ export default function Dashboard() {
     if (isTransitioning) return;
 
     try {
+      if (!currentUser) return;
+
       const now = Date.now();
       const timeSinceLastFetch = now - lastFetchRef.current;
       
       // Always show cached data first if available
-      const cachedHabits = loadHabits();
+      // Security Concern: Client-Side IDOR - Filter local habits by current user
+      const cachedHabits = loadHabits().filter(habit => habit.user_id === currentUser);
       if (cachedHabits.length > 0 && !initialLoadDone.current) {
         setHabits(cachedHabits);
         setLoading(false);
@@ -50,8 +53,6 @@ export default function Dashboard() {
         setLoading(true);
       }
       setError(null);
-
-      if (!currentUser) return;
 
       const [userHabits, todayLogs] = await Promise.all([
         getUserHabits(currentUser),
@@ -98,6 +99,9 @@ export default function Dashboard() {
       setCompletedHabits(new Set());
       setCompletionRate(0);
       setLoading(true);
+      // Reset fetch refs when user changes to ensure new user's data is fetched
+      initialLoadDone.current = false;
+      lastFetchRef.current = 0;
     } else {
       loadData();
     }
