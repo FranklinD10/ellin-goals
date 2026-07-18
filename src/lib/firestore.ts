@@ -1,17 +1,17 @@
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  where, 
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
   orderBy,
   limit,
-  deleteDoc, 
-  doc, 
-  Timestamp, 
-  setDoc, 
-  writeBatch, 
-  onSnapshot, 
+  deleteDoc,
+  doc,
+  Timestamp,
+  setDoc,
+  writeBatch,
+  onSnapshot,
   getDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -23,7 +23,7 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (!habit.user_id || typeof habit.user_id !== 'string' || habit.user_id.length > 128) {
     throw new Error('Invalid userId');
   }
-  
+
   // Defensive validation against excessively large entries
   if (habit.name && habit.name.length > 100) {
     throw new Error('Habit name exceeds maximum allowed length');
@@ -40,10 +40,10 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
     });
 
     // Return the complete habit object
-    return { 
-      id: docRef.id, 
-      ...habit, 
-      created_at: Timestamp.now() 
+    return {
+      id: docRef.id,
+      ...habit,
+      created_at: Timestamp.now()
     } as Habit;
   } catch (error) {
     if (import.meta.env.DEV) { console.error('Error adding habit', error); }
@@ -105,8 +105,8 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
       (log) => {
         if (!log.date) return false;
         const logDate = (log.date as Timestamp).toDate();
-        return logDate >= todayStart && 
-               logDate <= todayEnd && 
+        return logDate >= todayStart &&
+               logDate <= todayEnd &&
                !log.deleted;
       }
     );
@@ -114,8 +114,8 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
     // Merge Firebase logs with unsynced local logs, preferring local versions
     const allLogs = [...firebaseLogs];
     unsyncedLogs.forEach(localLog => {
-      const index = allLogs.findIndex(log => 
-        log.habit_id === localLog.habit_id && 
+      const index = allLogs.findIndex(log =>
+        log.habit_id === localLog.habit_id &&
         log.date.seconds === localLog.date.seconds
       );
       if (index >= 0) {
@@ -139,6 +139,9 @@ export const getHabitLogs = async (habitId: string, userId: string, startDate: D
   }
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
+  }
+  if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+    throw new Error('Invalid startDate');
   }
   const primaryConstraints = [
     where('habit_id', '==', habitId),
@@ -173,9 +176,9 @@ export const getHabitLogs = async (habitId: string, userId: string, startDate: D
 };
 
 export const logHabitCompletion = async (
-  habitId: string, 
-  userId: UserType, 
-  date: Date, 
+  habitId: string,
+  userId: UserType,
+  date: Date,
   completed: boolean
 ) => {
   if (!habitId || typeof habitId !== 'string' || habitId.length > 128) {
@@ -183,6 +186,12 @@ export const logHabitCompletion = async (
   }
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
+  }
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error('Invalid date');
+  }
+  if (typeof completed !== 'boolean') {
+    throw new Error('Invalid completed status');
   }
 
   // Security Concern: IDOR - Authorize mutation by verifying the habit belongs to the user
@@ -197,7 +206,7 @@ export const logHabitCompletion = async (
 
   const localDate = startOfDay(date);
   const docId = `${habitId}_${localDate.toISOString().split('T')[0]}_${userId}`;
-  
+
   const logData = {
     habit_id: habitId,
     user_id: userId,
@@ -220,7 +229,7 @@ export const logHabitCompletion = async (
 
     // Clear local backup after successful sync
     localStorage.removeItem(localKey);
-    
+
     return { success: true, docId, logData };
   } catch (error) {
     if (import.meta.env.DEV) { console.error('Error logging habit', error); }
@@ -248,17 +257,17 @@ export const deleteHabit = async (habitId: string, userId: string) => {
   }
 
   const batch = writeBatch(db);
-  
+
   // Mark habit as deleted instead of actually deleting it
-  batch.update(habitRef, { 
+  batch.update(habitRef, {
     deleted: true,
-    deletedAt: Timestamp.now() 
+    deletedAt: Timestamp.now()
   });
-  
+
   // Delete logs in chunks of 400 to avoid exceeding the 500 operation limit per batch
   const logsQuery = query(collection(db, 'habit_logs'), where('habit_id', '==', habitId), where('user_id', '==', userId));
   const snapshot = await getDocs(logsQuery);
-  
+
   // Create chunks of 400 docs
   const chunks = [];
   for (let i = 0; i < snapshot.docs.length; i += 400) {
@@ -321,11 +330,24 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
+  if (!settings || typeof settings !== 'object') {
+    throw new Error('Invalid settings object');
+  }
+  if (settings.theme !== 'light' && settings.theme !== 'dark') {
+    throw new Error('Invalid theme setting');
+  }
+  if (typeof settings.notifications !== 'boolean') {
+    throw new Error('Invalid notifications setting');
+  }
+  if (!settings.themeColor || typeof settings.themeColor !== 'string') {
+    throw new Error('Invalid themeColor setting');
+  }
+
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     // First, check if the document exists
     const docSnap = await getDoc(userDocRef);
-    
+
     if (docSnap.exists()) {
       // Update only the settings field
       await setDoc(userDocRef, { settings }, { merge: true });
