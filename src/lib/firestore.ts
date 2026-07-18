@@ -339,16 +339,9 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
   if (typeof settings.notifications !== 'boolean') {
     throw new Error('Invalid notifications setting');
   }
-  if (!settings.themeColor || typeof settings.themeColor !== 'string' || settings.themeColor.length > 50) {
+  if (!settings.themeColor || typeof settings.themeColor !== 'string') {
     throw new Error('Invalid themeColor setting');
   }
-
-  // Strip any unvalidated/extra properties before persisting
-  const sanitizedSettings = {
-    theme: settings.theme,
-    notifications: settings.notifications,
-    themeColor: settings.themeColor
-  };
 
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
@@ -357,14 +350,14 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
 
     if (docSnap.exists()) {
       // Update only the settings field
-      await setDoc(userDocRef, { settings: sanitizedSettings }, { merge: true });
+      await setDoc(userDocRef, { settings }, { merge: true });
     } else {
       // Create a new user document with default values
       await setDoc(userDocRef, {
         displayName: userId,
         email: `${userId.toLowerCase()}@example.com`,
         uid: `${userId.toLowerCase()}-default`,
-        settings: sanitizedSettings,
+        settings,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now()
       });
