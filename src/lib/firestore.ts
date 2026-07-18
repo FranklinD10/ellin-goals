@@ -140,6 +140,9 @@ export const getHabitLogs = async (habitId: string, userId: string, startDate: D
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
+  if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+    throw new Error('Invalid startDate');
+  }
   const primaryConstraints = [
     where('habit_id', '==', habitId),
     where('user_id', '==', userId),
@@ -183,6 +186,12 @@ export const logHabitCompletion = async (
   }
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
+  }
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error('Invalid date');
+  }
+  if (typeof completed !== 'boolean') {
+    throw new Error('Invalid completed status');
   }
 
   // Security Concern: IDOR - Authorize mutation by verifying the habit belongs to the user
@@ -321,6 +330,19 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
+  if (!settings || typeof settings !== 'object') {
+    throw new Error('Invalid settings object');
+  }
+  if (settings.theme !== 'light' && settings.theme !== 'dark') {
+    throw new Error('Invalid theme setting');
+  }
+  if (typeof settings.notifications !== 'boolean') {
+    throw new Error('Invalid notifications setting');
+  }
+  if (!settings.themeColor || typeof settings.themeColor !== 'string') {
+    throw new Error('Invalid themeColor setting');
+  }
+
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     // First, check if the document exists
