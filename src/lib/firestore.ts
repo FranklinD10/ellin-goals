@@ -24,11 +24,14 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
     throw new Error('Invalid userId');
   }
 
-  // Defensive validation against excessively large entries
-  if (habit.name && habit.name.length > 100) {
-    throw new Error('Habit name exceeds maximum allowed length');
+  // Security Concern: Payload Validation - Enforce strict runtime type checks
+  if (typeof habit.name !== 'string' || habit.name.trim() === '' || habit.name.length > 100) {
+    throw new Error('Invalid habit name');
   }
-  if (habit.category && habit.category.length > 50) {
+  if (habit.category !== undefined && typeof habit.category !== 'string') {
+    throw new Error('Invalid habit category format');
+  }
+  if (typeof habit.category === 'string' && habit.category.length > 50) {
     throw new Error('Habit category exceeds maximum allowed length');
   }
 
