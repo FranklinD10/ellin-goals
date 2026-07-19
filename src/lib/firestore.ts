@@ -28,16 +28,20 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   if (typeof habit.name !== 'string' || habit.name.trim() === '' || habit.name.length > 100) {
     throw new Error('Invalid habit name');
   }
-  if (habit.category !== undefined && typeof habit.category !== 'string') {
-    throw new Error('Invalid habit category format');
+  if (typeof habit.category !== 'string' || habit.category.length > 50) {
+    throw new Error('Invalid habit category');
   }
-  if (typeof habit.category === 'string' && habit.category.length > 50) {
-    throw new Error('Habit category exceeds maximum allowed length');
-  }
+
+  // Build the payload explicitly so arbitrary extra properties on `habit` can't reach Firestore
+  const sanitizedHabit = {
+    name: habit.name,
+    category: habit.category,
+    user_id: habit.user_id
+  };
 
   try {
     const docRef = await addDoc(collection(db, 'habits'), {
-      ...habit,
+      ...sanitizedHabit,
       created_at: Timestamp.now(),
       deleted: false // Add this field explicitly
     });
@@ -45,7 +49,7 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
     // Return the complete habit object
     return {
       id: docRef.id,
-      ...habit,
+      ...sanitizedHabit,
       created_at: Timestamp.now()
     } as Habit;
   } catch (error) {
