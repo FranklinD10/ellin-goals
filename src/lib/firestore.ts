@@ -40,9 +40,10 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   };
 
   try {
+    const createdAt = Timestamp.now();
     const docRef = await addDoc(collection(db, 'habits'), {
       ...sanitizedHabit,
-      created_at: Timestamp.now(),
+      created_at: createdAt,
       deleted: false // Add this field explicitly
     });
 
@@ -50,7 +51,8 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
     return {
       id: docRef.id,
       ...sanitizedHabit,
-      created_at: Timestamp.now()
+      created_at: createdAt,
+      deleted: false
     } as Habit;
   } catch (error) {
     if (import.meta.env.DEV) { console.error('Error adding habit', error); }
