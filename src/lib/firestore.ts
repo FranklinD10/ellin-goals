@@ -24,26 +24,35 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
     throw new Error('Invalid userId');
   }
 
-  // Defensive validation against excessively large entries
-  if (habit.name && habit.name.length > 100) {
-    throw new Error('Habit name exceeds maximum allowed length');
+  // Security Concern: Payload Validation - Enforce strict runtime type checks
+  if (typeof habit.name !== 'string' || habit.name.trim() === '' || habit.name.length > 100) {
+    throw new Error('Invalid habit name');
   }
-  if (habit.category && habit.category.length > 50) {
-    throw new Error('Habit category exceeds maximum allowed length');
+  if (typeof habit.category !== 'string' || habit.category.length > 50) {
+    throw new Error('Invalid habit category');
   }
 
+  // Build the payload explicitly so arbitrary extra properties on `habit` can't reach Firestore
+  const sanitizedHabit = {
+    name: habit.name,
+    category: habit.category,
+    user_id: habit.user_id
+  };
+
   try {
+    const createdAt = Timestamp.now();
     const docRef = await addDoc(collection(db, 'habits'), {
-      ...habit,
-      created_at: Timestamp.now(),
+      ...sanitizedHabit,
+      created_at: createdAt,
       deleted: false // Add this field explicitly
     });
 
     // Return the complete habit object
     return {
       id: docRef.id,
-      ...habit,
-      created_at: Timestamp.now()
+      ...sanitizedHabit,
+      created_at: createdAt,
+      deleted: false
     } as Habit;
   } catch (error) {
     if (import.meta.env.DEV) { console.error('Error adding habit', error); }
