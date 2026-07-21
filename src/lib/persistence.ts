@@ -18,7 +18,13 @@ export const persistHabits = (habits: Habit[]) => {
 
 export const loadHabits = (): Habit[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.HABITS);
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    if (import.meta.env.DEV) { console.error('Failed to parse habits from local storage:', e); }
+    return [];
+  }
 };
 
 export const persistChecks = (checks: DailyCheck[]) => {
@@ -27,7 +33,13 @@ export const persistChecks = (checks: DailyCheck[]) => {
 
 export const loadChecks = (): DailyCheck[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.CHECKS);
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    if (import.meta.env.DEV) { console.error('Failed to parse checks from local storage:', e); }
+    return [];
+  }
 };
 
 export const syncWithFirestore = async () => {
