@@ -359,6 +359,13 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
     throw new Error('Invalid themeColor setting');
   }
 
+  // Security Concern: Payload Validation - Explicitly construct payload to prevent property injection
+  const sanitizedSettings: UserSettings = {
+    theme: settings.theme,
+    notifications: settings.notifications,
+    themeColor: settings.themeColor
+  };
+
   try {
     const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     // First, check if the document exists
@@ -366,14 +373,14 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
 
     if (docSnap.exists()) {
       // Update only the settings field
-      await setDoc(userDocRef, { settings }, { merge: true });
+      await setDoc(userDocRef, { settings: sanitizedSettings }, { merge: true });
     } else {
       // Create a new user document with default values
       await setDoc(userDocRef, {
         displayName: userId,
         email: `${userId.toLowerCase()}@example.com`,
         uid: `${userId.toLowerCase()}-default`,
-        settings,
+        settings: sanitizedSettings,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now()
       });
