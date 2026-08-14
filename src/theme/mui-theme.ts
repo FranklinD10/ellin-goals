@@ -5,11 +5,13 @@ import { themes } from '../utils/theme-constants';
 export const getThemeOptions = (
   mode: 'light' | 'dark',
   themeColor: ThemeColorType
-): ThemeOptions => ({
+): ThemeOptions => {
+  const safeThemeColor = themes[themeColor] ? themeColor : 'red';
+  return {
   palette: {
     mode,
     primary: {
-      main: themes[themeColor].color,
+      main: themes[safeThemeColor].color,
     },
     background: {
       default: mode === 'dark' ? '#1A1B1E' : '#F8F9FA',
@@ -63,7 +65,8 @@ export const getThemeOptions = (
       textTransform: 'none',
     },
   },
-});
+};
+};
 
 export const createMuiTheme = (mode: 'light' | 'dark', themeColor: ThemeColorType) => {
   return createTheme(getThemeOptions(mode, themeColor));

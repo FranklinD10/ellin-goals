@@ -355,7 +355,8 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
   if (typeof settings.notifications !== 'boolean') {
     throw new Error('Invalid notifications setting');
   }
-  if (!settings.themeColor || typeof settings.themeColor !== 'string') {
+  const validColors = ['red', 'pink', 'purple', 'blue', 'green', 'yellow', 'cyan', 'teal', 'indigo', 'orange', 'deepPurple', 'blueGrey'];
+  if (!settings.themeColor || typeof settings.themeColor !== 'string' || !validColors.includes(settings.themeColor)) {
     throw new Error('Invalid themeColor setting');
   }
 
