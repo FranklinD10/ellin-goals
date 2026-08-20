@@ -99,7 +99,8 @@ export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
     .filter(([key]) => key.startsWith('habit_log_'))
     .map(([_, value]) => {
       try {
-        return JSON.parse(value);
+        const parsed = JSON.parse(value);
+        return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : null;
       } catch (e) {
         if (import.meta.env.DEV) { console.error('Failed to parse log from local storage:', e); }
         return null;
