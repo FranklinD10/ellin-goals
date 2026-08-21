@@ -20,7 +20,11 @@ export const loadHabits = (): Habit[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.HABITS);
   if (!stored) return [];
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      throw new Error('Invalid format: habits must be an array');
+    }
+    return parsed;
   } catch (e) {
     if (import.meta.env.DEV) { console.error('Failed to parse habits from local storage:', e); }
     return [];
@@ -35,7 +39,11 @@ export const loadChecks = (): DailyCheck[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.CHECKS);
   if (!stored) return [];
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      throw new Error('Invalid format: checks must be an array');
+    }
+    return parsed;
   } catch (e) {
     if (import.meta.env.DEV) { console.error('Failed to parse checks from local storage:', e); }
     return [];
