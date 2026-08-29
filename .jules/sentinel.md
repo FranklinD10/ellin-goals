@@ -155,3 +155,7 @@
 **Vulnerability:** The functions `loadHabits` and `loadChecks` in `src/lib/persistence.ts` were using `JSON.parse` to deserialize untrusted `localStorage` data within a `try...catch` block. However, they lacked runtime type verification, meaning valid non-array JSON objects (e.g. `'{"malicious": "object"}'`) were returned successfully. When the consuming components tried to call array methods on these objects (e.g., `loadHabits().filter(...)`), a TypeError was thrown, crashing the application continuously on startup.
 **Learning:** `try...catch` with `JSON.parse` only protects against `SyntaxError` from malformed JSON strings. It does not protect against logical type confusion when valid JSON of an unexpected structure is deserialized.
 **Prevention:** Always follow `JSON.parse` with an explicit runtime validation check for the expected structural type (e.g., `Array.isArray(parsed)`) before returning data from untrusted client-side storage.
+## 2024-05-24 - [Local Storage Parse Type Confusion]
+**Vulnerability:** Unsafe local storage parsing led to potential persistent client-side Denial of Service because it assumed the data was an object.
+**Learning:** `JSON.parse` will evaluate whatever is in `localStorage` regardless of its intended format, and the code did not validate if it was an object.
+**Prevention:** `typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)` is a good practice to ensure object type parsing before accessing fields.
