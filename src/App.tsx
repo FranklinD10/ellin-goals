@@ -51,9 +51,9 @@ function AppContent() {
 
   useEffect(() => {
     // Initialize audio system
-    audioManager.initialize().catch(() => {
+    audioManager.initialize().catch((err) => {
       if (import.meta.env.DEV) {
-        console.error('Failed to initialize audio system');
+        console.error(err);
       }
     });
   }, []);
