@@ -159,3 +159,8 @@
 **Vulnerability:** Unsafe local storage parsing led to potential persistent client-side Denial of Service because it assumed the data was an object.
 **Learning:** `JSON.parse` will evaluate whatever is in `localStorage` regardless of its intended format, and the code did not validate if it was an object.
 **Prevention:** `typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)` is a good practice to ensure object type parsing before accessing fields.
+
+## 2026-08-20 - [Dependency Vulnerability]
+**Vulnerability:** A high severity vulnerability (GHSA-2v37-7h3g-55p8) was discovered in the `nanoid` dependency where custom generators can loop indefinitely when size is zero, leading to a Denial of Service.
+**Learning:** Even transitive dependencies used for generating IDs or tokens can introduce DoS vulnerabilities if they are not kept up to date. This highlights the importance of regularly auditing dependencies to catch newly discovered CVEs.
+**Prevention:** Regularly run `npm audit` and apply fixes via `npm audit fix` to ensure all direct and transitive dependencies are patched against known vulnerabilities. Track indirect dependency updates through lockfiles carefully.
