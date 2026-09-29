@@ -1,13 +1,20 @@
 import isEqual from 'lodash/isEqual';
+import { themes } from './theme-constants';
 
 export function hasSettingsChanged(oldSettings: any, newSettings: any): boolean {
   return !isEqual(oldSettings, newSettings);
 }
 
 export function getLocalSettings() {
+  const storedTheme = localStorage.getItem('theme');
+  const theme = (storedTheme === 'light' || storedTheme === 'dark') ? storedTheme : 'light';
+
+  const storedThemeColor = localStorage.getItem('themeColor');
+  const themeColor = storedThemeColor && themes[storedThemeColor as keyof typeof themes] ? storedThemeColor : 'red';
+
   return {
-    theme: localStorage.getItem('theme') || 'light',
-    themeColor: localStorage.getItem('themeColor') || 'red',
+    theme,
+    themeColor,
     notifications: localStorage.getItem('notifications') !== 'false'
   };
 }
