@@ -10,7 +10,7 @@ export function getLocalSettings() {
   const theme = (storedTheme === 'light' || storedTheme === 'dark') ? storedTheme : 'light';
 
   const storedThemeColor = localStorage.getItem('themeColor');
-  const themeColor = storedThemeColor && themes[storedThemeColor as keyof typeof themes] ? storedThemeColor : 'red';
+  const themeColor = storedThemeColor && Object.hasOwn(themes, storedThemeColor) ? storedThemeColor : 'red';
 
   return {
     theme,
