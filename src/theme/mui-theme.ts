@@ -6,7 +6,7 @@ export const getThemeOptions = (
   mode: 'light' | 'dark',
   themeColor: ThemeColorType
 ): ThemeOptions => {
-  const safeThemeColor = themes[themeColor] ? themeColor : 'red';
+  const safeThemeColor = Object.prototype.hasOwnProperty.call(themes, themeColor) ? themeColor : 'red';
   return {
   palette: {
     mode,

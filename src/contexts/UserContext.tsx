@@ -25,8 +25,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const { themeColor } = useTheme();
 
   const userDetails: Record<UserType, { color: string; avatar: string }> = {
-    El: { color: themes[themeColor]?.color || themes.pink.color, avatar: '👩' },
-    Lin: { color: themes[themeColor]?.color || themes.blue.color, avatar: '👨' }
+    El: { color: (Object.prototype.hasOwnProperty.call(themes, themeColor) ? themes[themeColor as keyof typeof themes].color : null) || themes.pink.color, avatar: '👩' },
+    Lin: { color: (Object.prototype.hasOwnProperty.call(themes, themeColor) ? themes[themeColor as keyof typeof themes].color : null) || themes.blue.color, avatar: '👨' }
   };
 
   useEffect(() => {
