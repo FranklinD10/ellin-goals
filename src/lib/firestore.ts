@@ -404,7 +404,20 @@ export const getUserSettings = async (userId: string) => {
     const docRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return docSnap.data().settings || null;
+      const settings = docSnap.data().settings;
+      if (!settings || typeof settings !== 'object') return null;
+
+      const validColors = ['red', 'pink', 'purple', 'blue', 'green', 'yellow', 'cyan', 'teal', 'indigo', 'orange', 'deepPurple', 'blueGrey'];
+
+      const themeColor = validColors.includes(settings.themeColor) ? settings.themeColor : 'red';
+      const theme = (settings.theme === 'light' || settings.theme === 'dark') ? settings.theme : 'light';
+      const notifications = typeof settings.notifications === 'boolean' ? settings.notifications : false;
+
+      return {
+        theme,
+        themeColor,
+        notifications
+      };
     }
     return null;
   } catch (error) {
