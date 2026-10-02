@@ -1,11 +1,25 @@
 /// <reference types="@testing-library/jest-dom" />
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, act, render, waitFor } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import HealthCheck from './HealthCheck';
 import { UserProvider } from '../contexts/UserContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import '@testing-library/jest-dom/vitest';
+
+// The app has no Firebase API key in the test environment, and unit tests
+// must never initialize real Firebase services or touch the network.
+// Mock the whole firebase module so that importing the page under test
+// cannot run initializeApp/getAuth (which throws auth/invalid-api-key
+// at import time when the API key is missing).
+vi.mock('../lib/firebase', () => ({
+  app: {},
+  db: {},
+  auth: {},
+  functions: {},
+  signInAnonymousUser: vi.fn(),
+  default: {},
+}));
 
 // Mock matchMedia to prevent errors from ThemeProvider
 Object.defineProperty(window, 'matchMedia', {
