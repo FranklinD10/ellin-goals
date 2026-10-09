@@ -182,3 +182,7 @@
 **Vulnerability:** The `getUserSettings` function in `src/lib/firestore.ts` blindly returned whatever `settings` object was stored in Firestore.
 **Learning:** Even when the backend data store is ostensibly trusted, it should not be blindly trusted by the client logic. Malicious database modifications, schema changes, or accidental corruption could lead to properties not matching the expected type or allowlist. This could cause the application to crash or enter an invalid state when reading configuration.
 **Prevention:** Always enforce strict schema and allowlist validation not just when writing to the database, but also when reading from it, providing safe defaults if validation fails.
+## 2026-10-09 - [Update Vulnerable Dependencies via npm audit]
+**Vulnerability:** Outdated and vulnerable packages in package-lock.json (`braces`, `compression`, `fast-uri`) had known high or moderate severity CVEs such as ReDoS or memory leak/DoS.
+**Learning:** Indirect or direct dependencies with known vulnerabilities can compromise application security. Keeping them up-to-date is a key defense-in-depth measure.
+**Prevention:** Run `npm audit` regularly and apply fixes using `npm audit fix`.
