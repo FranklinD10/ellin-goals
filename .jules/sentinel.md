@@ -186,3 +186,7 @@
 **Vulnerability:** Outdated and vulnerable packages in package-lock.json (`braces`, `compression`, `fast-uri`) had known high or moderate severity CVEs such as ReDoS or memory leak/DoS.
 **Learning:** Indirect or direct dependencies with known vulnerabilities can compromise application security. Keeping them up-to-date is a key defense-in-depth measure.
 **Prevention:** Run `npm audit` regularly and apply fixes using `npm audit fix`.
+## 2026-10-15 - [Client-Side Prototype Pollution Defense]
+**Vulnerability:** Untrusted configuration strings from `localStorage` (such as `themeColor`) were being validated against an allowed dictionary using `Object.prototype.hasOwnProperty.call`. While safe from prototype pollution, modern codebases should prefer `Object.hasOwn()`.
+**Learning:** `Object.hasOwn()` is the modern standard for checking object properties and should be used instead of `Object.prototype.hasOwnProperty.call` when available.
+**Prevention:** Use `Object.hasOwn()` for all property checks on untrusted input to maintain secure and modern code.

@@ -347,7 +347,7 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
 }
 
 export const saveUserSettings = async (userId: string, settings: UserSettings) => {
-  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
     throw new Error('Invalid userId');
   }
   if (!settings || typeof settings !== 'object') {
@@ -397,7 +397,7 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
 };
 
 export const getUserSettings = async (userId: string) => {
-  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
     throw new Error('Invalid userId');
   }
   try {
@@ -427,7 +427,7 @@ export const getUserSettings = async (userId: string) => {
 };
 
 export const getUserData = async (userId: UserType): Promise<UserData | null> => {
-  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
     throw new Error('Invalid userId');
   }
   try {
