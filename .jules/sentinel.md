@@ -190,3 +190,8 @@
 **Vulnerability:** Untrusted configuration strings from `localStorage` (such as `themeColor`) were being validated against an allowed dictionary using `Object.prototype.hasOwnProperty.call`. While safe from prototype pollution, modern codebases should prefer `Object.hasOwn()`.
 **Learning:** `Object.hasOwn()` is the modern standard for checking object properties and should be used instead of `Object.prototype.hasOwnProperty.call` when available.
 **Prevention:** Use `Object.hasOwn()` for all property checks on untrusted input to maintain secure and modern code.
+
+## 2026-11-10 - [Case-Insensitive User ID Collision]
+**Vulnerability:** When standard 28-character Firebase Auth UIDs were integrated, `userId.toLowerCase()` was inadvertently applied to all generic user IDs during document creation or reads (`getUserSettings`, `saveUserSettings`, `getUserData`). This could cause a case-insensitive user ID collision where two distinct users with different casing in their UIDs could be forced to use the same configuration document.
+**Learning:** Legacy mappings (like "El" and "Lin" requiring `.toLowerCase()`) should not be unconditionally applied across a generic data structure or ID.
+**Prevention:** Apply legacy-specific mappings only when the explicit user matches the legacy case. Always ensure identifiers maintain strict equivalence with external authentication providers.

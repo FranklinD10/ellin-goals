@@ -60,7 +60,7 @@ export const addHabit = async (habit: Omit<Habit, 'id' | 'created_at'>) => {
   }
 };
 
-export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
+export const getUserHabits = async (userId: string): Promise<Habit[]> => {
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
@@ -86,7 +86,7 @@ export const getUserHabits = async (userId: UserType): Promise<Habit[]> => {
   }
 };
 
-export const getTodayLogs = async (userId: UserType): Promise<HabitLog[]> => {
+export const getTodayLogs = async (userId: string): Promise<HabitLog[]> => {
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
@@ -197,7 +197,7 @@ export const getHabitLogs = async (habitId: string, userId: string, startDate: D
 
 export const logHabitCompletion = async (
   habitId: string,
-  userId: UserType,
+  userId: string,
   date: Date,
   completed: boolean
 ) => {
@@ -347,7 +347,7 @@ export function subscribeToHabits(userId: string, callback: (habits: Habit[]) =>
 }
 
 export const saveUserSettings = async (userId: string, settings: UserSettings) => {
-  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
   if (!settings || typeof settings !== 'object') {
@@ -372,7 +372,9 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
   };
 
   try {
-    const userDocRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
+    // Legacy mapping support for original 'El' and 'Lin' users
+    const userDocId = (userId === 'El' || userId === 'Lin') ? `${userId.toLowerCase()}-default` : userId;
+    const userDocRef = doc(db, 'users', userDocId);
     // First, check if the document exists
     const docSnap = await getDoc(userDocRef);
 
@@ -383,8 +385,8 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
       // Create a new user document with default values
       await setDoc(userDocRef, {
         displayName: userId,
-        email: `${userId.toLowerCase()}@example.com`,
-        uid: `${userId.toLowerCase()}-default`,
+        email: (userId === 'El' || userId === 'Lin') ? `${userId.toLowerCase()}@example.com` : `${userId}@example.com`,
+        uid: userDocId,
         settings: sanitizedSettings,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now()
@@ -397,11 +399,13 @@ export const saveUserSettings = async (userId: string, settings: UserSettings) =
 };
 
 export const getUserSettings = async (userId: string) => {
-  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
   try {
-    const docRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
+    // Legacy mapping support for original 'El' and 'Lin' users
+    const userDocId = (userId === 'El' || userId === 'Lin') ? `${userId.toLowerCase()}-default` : userId;
+    const docRef = doc(db, 'users', userDocId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const settings = docSnap.data().settings;
@@ -426,12 +430,14 @@ export const getUserSettings = async (userId: string) => {
   }
 };
 
-export const getUserData = async (userId: UserType): Promise<UserData | null> => {
-  if (!userId || typeof userId !== 'string' || (userId !== 'El' && userId !== 'Lin')) {
+export const getUserData = async (userId: string): Promise<UserData | null> => {
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error('Invalid userId');
   }
   try {
-    const userRef = doc(db, 'users', `${userId.toLowerCase()}-default`);
+    // Legacy mapping support for original 'El' and 'Lin' users
+    const userDocId = (userId === 'El' || userId === 'Lin') ? `${userId.toLowerCase()}-default` : userId;
+    const userRef = doc(db, 'users', userDocId);
     const userDoc = await getDoc(userRef);
     if (userDoc.exists()) {
       return userDoc.data() as UserData;
